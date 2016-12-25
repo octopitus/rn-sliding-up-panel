@@ -1,0 +1,34 @@
+{
+  "name": "rn-sliding-up-panel",
+  "private": false,
+  "version": "1.0.0",
+  "description": "Draggable sliding up panel implemented in React Native",
+  "main": "SlidingUpPanel.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/octopitus/rn-sliding-up-panel.git"
+  },
+  "keywords": [
+    "react",
+    "react-native",
+    "react-native-component",
+    "ui",
+    "mobile",
+    "sliding",
+    "panel",
+    "sliding-up-panel"
+  ],
+  "author": "Luy Tran <thailuy86@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/octopitus/rn-sliding-up-panel/issues"
+  },
+  "homepage": "https://github.com/octopitus/rn-sliding-up-panel#readme",
+  "dependencies": {
+    "react": "^15.4.1",
+    "react-native": "^0.39.2"
+  }
+}
