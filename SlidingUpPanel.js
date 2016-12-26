@@ -1,4 +1,6 @@
-/* @flow */
+/**
+ * @flow
+ */
 import React from 'react'
 import {Modal, View, TouchableWithoutFeedback, Animated, PanResponder} from 'react-native'
 
@@ -63,6 +65,7 @@ class SlidingUpPanel extends React.Component {
     this.state.translateYAnimation.removeListener(this.onPanelMove)
   }
 
+  // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
     if (this._flick) {
       this._flick.stop()
@@ -71,6 +74,7 @@ class SlidingUpPanel extends React.Component {
     return true
   }
 
+  // eslint-disable-next-line no-unused-vars
   _onStartShouldSetResponderCapture(evt, gestureState) {
     return true
   }
@@ -87,10 +91,12 @@ class SlidingUpPanel extends React.Component {
     return Math.abs(gestureState.dy) > 1
   }
 
+  // eslint-disable-next-line no-unused-vars
   _onMoveShouldSetResponderCapture(evt, gestureState) {
     return true
   }
 
+  // eslint-disable-next-line no-unused-vars
   _onPanResponderGrant(evt, gestureState) {
     this.state.translateYAnimation.setOffset(this._animatedValueY)
     this.state.translateYAnimation.setValue(0)
@@ -136,6 +142,7 @@ class SlidingUpPanel extends React.Component {
     return
   }
 
+  // eslint-disable-next-line no-unused-vars
   _onPanResponderTerminate(evt, gestureState) {
     //
   }
@@ -200,7 +207,7 @@ class SlidingUpPanel extends React.Component {
 
     animation.start(() => {
       this.setState({visible: false})
-      typeof callback === 'function' && callback()
+      if (typeof callback === 'function') { callback() }
     })
   }
 }
