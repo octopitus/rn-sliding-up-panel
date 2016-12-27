@@ -10,11 +10,6 @@ import styles from './libs/styles'
 
 const VMAX = 1.67
 
-type State = {
-  visible: boolean,
-  translateYAnimation: Animated.Value
-}
-
 type Props = {
   onPanelMove: (value: number) => void,
   contentContainerStyle: Object,
@@ -25,25 +20,26 @@ class SlidingUpPanel extends React.Component {
 
   static defaultProps: Props
   props: Props
-  state: State
+
+  state: {visible: boolean}
 
   _panResponder: any
   _animatedValueY: number
+  _translateYAnimation: Animated.Value
   _flick: FlickAnimation
 
   constructor(props: Props) {
     super(props)
 
-    this._animatedValueY = 0
+    this.state = {visible: false}
 
-    this.state = {
-      visible: false,
-      translateYAnimation: new Animated.Value(0)
-    }
+    this._animatedValueY = 0
+    this._translateYAnimation = new Animated.Value(0)
+    this._flick = new FlickAnimation(this._translateYAnimation)
   }
 
   componentWillMount() {
-    this.state.translateYAnimation.addListener(this.onPanelMove)
+    this._translateYAnimation.addListener(this._onPanelMove)
 
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
@@ -57,20 +53,13 @@ class SlidingUpPanel extends React.Component {
     })
   }
 
-  shouldComponentUpdate(nextProps: Props, nextState: State) {
-    return nextState.visible !== this.state.visible
-  }
-
   componentWillUnmount() {
-    this.state.translateYAnimation.removeListener(this.onPanelMove)
+    this._translateYAnimation.removeListener(this._onPanelMove)
   }
 
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
-    if (this._flick) {
-      this._flick.stop()
-    }
-
+    this._flick.stop()
     return true
   }
 
@@ -80,11 +69,12 @@ class SlidingUpPanel extends React.Component {
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
-    if (this._flick) {
-      this._flick.stop()
-    }
+    this._flick.stop()
 
-    if (this._animatedValueY <= -visibleHeight) {
+    if (
+      this._animatedValueY <= -visibleHeight &&
+      gestureState.vy <= 0
+    ) {
       return gestureState.dy > 1
     }
 
@@ -98,32 +88,37 @@ class SlidingUpPanel extends React.Component {
 
   // eslint-disable-next-line no-unused-vars
   _onPanResponderGrant(evt, gestureState) {
-    this.state.translateYAnimation.setOffset(this._animatedValueY)
-    this.state.translateYAnimation.setValue(0)
+    this._translateYAnimation.setOffset(this._animatedValueY)
+    this._translateYAnimation.setValue(0)
   }
 
   _onPanResponderMove(evt, gestureState) {
     if (
       this._animatedValueY <= -visibleHeight &&
-      gestureState.dy < 0
+      gestureState.dy <= 0
     ) {
       return
     }
 
-    this.state.translateYAnimation.setValue(gestureState.dy)
+    this._translateYAnimation.setValue(gestureState.dy)
   }
 
   _onPanResponderRelease(evt, gestureState) {
     if (
       this._animatedValueY <= -visibleHeight &&
-      gestureState.dy < 0
+      gestureState.dy <= 0
     ) {
       return
     }
 
-    this.state.translateYAnimation.flattenOffset()
+    this._translateYAnimation.flattenOffset()
 
-    const velocity: number = gestureState.vy
+    const velocity = gestureState.vy
+
+    if (this._animatedValueY >= -visibleHeight / 2) {
+      this.hide()
+      return
+    }
 
     // Predict if the panel closes in 20 frames
     const _delta = 325 * velocity
@@ -135,7 +130,6 @@ class SlidingUpPanel extends React.Component {
     }
 
     if (Math.abs(gestureState.vy) > 0.1) {
-      this._flick = new FlickAnimation(this.state.translateYAnimation)
       this._flick.start({velocity, fromValue: this._animatedValueY})
     }
 
@@ -148,9 +142,9 @@ class SlidingUpPanel extends React.Component {
   }
 
   render(): ?React.Element<any> {
-    const translateY = this.state.translateYAnimation
+    const translateY = this._translateYAnimation
 
-    const backdropOpacity = this.state.translateYAnimation.interpolate({
+    const backdropOpacity = this._translateYAnimation.interpolate({
       inputRange: [-visibleHeight, 0],
       outputRange: [0.75, 0]
     })
@@ -163,6 +157,7 @@ class SlidingUpPanel extends React.Component {
       <Modal
         transparent
         animationType='fade'
+        onShow={this._startShowAnimation}
         onRequestClose={this.hide}
         visible={this.state.visible}>
         <View style={styles.container}>
@@ -179,7 +174,7 @@ class SlidingUpPanel extends React.Component {
     )
   }
 
-  onPanelMove = ({value}: {value: number}): void => {
+  _onPanelMove = ({value}: {value: number}): void => {
     this._animatedValueY = value
     this.props.onPanelMove(value)
     if (this._animatedValueY >= 0 && this.state.visible) {
@@ -187,28 +182,36 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  show = (config?: {duration: number, easing?: any}): void => {
-    this.setState({visible: true}, () => {
-      Animated.timing(this.state.translateYAnimation, {
-        duration: 220,
-        ...config,
-        toValue: -visibleHeight / 2
-      }).start()
-    })
+  _startShowAnimation = (): void => {
+    const animationConfig: Object = {
+      duration: 220,
+      toValue: -visibleHeight / 2
+    }
+
+    // just for smooth transition on dev mode
+    if (__DEV__) {
+      animationConfig.delay = 110
+    }
+
+    Animated.timing(
+      this._translateYAnimation,
+      animationConfig
+    ).start()
   }
 
-  hide = (callback?: Function): void => {
-    this.state.translateYAnimation.setOffset(0)
+  show = (): void => {
+    this.setState({visible: true})
+  }
 
-    const animation = Animated.timing(this.state.translateYAnimation, {
-      duration: 220,
-      toValue: 0
-    })
+  hide = (): void => {
+    this._translateYAnimation.setOffset(0)
 
-    animation.start(() => {
-      this.setState({visible: false})
-      if (typeof callback === 'function') { callback() }
-    })
+    const animation = Animated.timing(
+      this._translateYAnimation,
+      {duration: 220, toValue: 0}
+    )
+
+    animation.start(() => this.setState({visible: false}))
   }
 }
 

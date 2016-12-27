@@ -1,6 +1,8 @@
 /* @flow */
-import {Animated} from 'react-native'
+import {Animated, PixelRatio} from 'react-native'
 import {visibleHeight} from './layout'
+
+const density = PixelRatio.get()
 
 const MAX = 0
 const MIN = -visibleHeight
@@ -10,14 +12,14 @@ const TIME_CONTANT: number = 325
 type AnimationConfig = {
   velocity: number,
   fromValue: number,
-  factor?: number
+  deceleration?: number
 }
 
 export default class FlickAnimation {
   _active: boolean
 
   _velocity: number
-  _factor: number
+  _deceleration: number
   _startTime: number
 
   _toValue: number
@@ -30,8 +32,7 @@ export default class FlickAnimation {
 
   _scroll(toValue: number): void {
     // eslint-disable-next-line no-nested-ternary
-    const offset: number = (toValue > MAX) ? MAX : (toValue < MIN) ? MIN : toValue
-    console.log(`offset ${offset}`)
+    const offset = (toValue > MAX) ? MAX : (toValue < MIN) ? MIN : toValue
     this._animation.setValue(offset)
 
     if (offset === MIN || offset === MAX) {
@@ -39,14 +40,11 @@ export default class FlickAnimation {
     }
   }
 
-  isActived(): boolean {
-    return this._active
-  }
-
   start(config: AnimationConfig): void {
     this._active = true
-    this._velocity = -config.velocity * 16.67
-    this._factor = config.factor != null ? config.factor : 0.8 // eslint-disable-line eqeqeq
+    // eslint-disable-next-line eqeqeq
+    this._deceleration = config.deceleration != null ? config.deceleration : 0.998
+    this._velocity = -config.velocity * density * 10
     this._toValue = config.fromValue
     this._startTime = Date.now()
     this._animationFrame = requestAnimationFrame(this.onUpdate.bind(this))
@@ -58,7 +56,7 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const amplitude = this._factor * this._velocity
+    const amplitude = this._deceleration * this._velocity
     const delta = -amplitude * Math.exp(-elapsedTime / TIME_CONTANT)
 
     if (Math.abs(delta) < 0.5) {
