@@ -1,6 +1,6 @@
 /* @flow */
-import {StyleSheet} from 'react-native'
-import {visibleHeight} from './layout'
+import {StyleSheet} from 'react-native';
+import {visibleHeight} from './layout';
 
 export default StyleSheet.create({
   container: {
@@ -24,4 +24,4 @@ export default StyleSheet.create({
     backgroundColor: '#FFF',
     height: visibleHeight
   }
-})
+});
