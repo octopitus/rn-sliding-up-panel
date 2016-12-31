@@ -45,11 +45,12 @@ class SlidingUpPanel extends React.Component {
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
       onStartShouldSetResponderCapture: this._onStartShouldSetResponderCapture.bind(this),
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-      onMoveShouldSetResponderCapture: this._onMoveShouldSetResponderCapture.bind(this),
+      onMoveShouldSetPanResponderCapture: this._onMoveShouldSetPanResponderCapture.bind(this),
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
+      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
+      onPanResponderTerminationRequest: () => true
     });
   }
 
@@ -71,10 +72,7 @@ class SlidingUpPanel extends React.Component {
   _onMoveShouldSetPanResponder(evt, gestureState) {
     this._flick.stop();
 
-    if (
-      this._animatedValueY <= -visibleHeight &&
-      gestureState.vy <= 0
-    ) {
+    if (this._animatedValueY <= -visibleHeight) {
       return gestureState.dy > 1;
     }
 
@@ -82,7 +80,7 @@ class SlidingUpPanel extends React.Component {
   }
 
   // eslint-disable-next-line no-unused-vars
-  _onMoveShouldSetResponderCapture(evt, gestureState) {
+  _onMoveShouldSetPanResponderCapture(evt, gestureState) {
     return true;
   }
 
@@ -94,8 +92,7 @@ class SlidingUpPanel extends React.Component {
 
   _onPanResponderMove(evt, gestureState) {
     if (
-      this._animatedValueY <= -visibleHeight &&
-      gestureState.dy <= 0
+      this._animatedValueY + gestureState.dy <= -visibleHeight
     ) {
       return;
     }
@@ -141,6 +138,31 @@ class SlidingUpPanel extends React.Component {
     //
   }
 
+  _onPanelMove = ({value}: {value: number}): void => {
+    this._animatedValueY = value;
+    this.props.onPanelMove(value);
+    if (this._animatedValueY >= 0 && this.state.visible) {
+      this.hide();
+    }
+  }
+
+  _startShowAnimation = (): void => {
+    const animationConfig = {
+      duration: 220,
+      toValue: -visibleHeight / 2
+    };
+
+    // just for smooth transition on dev mode
+    if (__DEV__) {
+      animationConfig.delay = 110;
+    }
+
+    Animated.timing(
+      this._translateYAnimation,
+      animationConfig
+    ).start();
+  }
+
   render(): ?React.Element<any> {
     const translateY = this._translateYAnimation;
 
@@ -161,7 +183,7 @@ class SlidingUpPanel extends React.Component {
         onRequestClose={this.hide}
         visible={this.state.visible}>
         <View style={styles.container}>
-          <TouchableWithoutFeedback onPressIn={() => this._flick && this._flick.stop()} onPress={this.hide}>
+          <TouchableWithoutFeedback onPressIn={() => this._flick.stop()} onPress={this.hide}>
             <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
           </TouchableWithoutFeedback>
           <Animated.View
@@ -172,31 +194,6 @@ class SlidingUpPanel extends React.Component {
         </View>
       </Modal>
     );
-  }
-
-  _onPanelMove = ({value}: {value: number}): void => {
-    this._animatedValueY = value;
-    this.props.onPanelMove(value);
-    if (this._animatedValueY >= 0 && this.state.visible) {
-      this.hide();
-    }
-  }
-
-  _startShowAnimation = (): void => {
-    const animationConfig: Object = {
-      duration: 220,
-      toValue: -visibleHeight / 2
-    };
-
-    // just for smooth transition on dev mode
-    if (__DEV__) {
-      animationConfig.delay = 110;
-    }
-
-    Animated.timing(
-      this._translateYAnimation,
-      animationConfig
-    ).start();
   }
 
   show = (): void => {

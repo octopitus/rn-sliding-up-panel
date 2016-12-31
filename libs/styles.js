@@ -16,12 +16,12 @@ export default StyleSheet.create({
     backgroundColor: '#000'
   },
   contentContainer: {
+    flex: 1,
     position: 'absolute',
     top: visibleHeight,
     left: 0,
     right: 0,
     alignSelf: 'stretch',
-    backgroundColor: '#FFF',
-    height: visibleHeight
+    backgroundColor: '#FFF'
   }
 });
