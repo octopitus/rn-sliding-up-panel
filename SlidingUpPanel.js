@@ -18,7 +18,7 @@ class SlidingUpPanel extends React.Component {
     onShow: React.PropTypes.func,
     onDrag: React.PropTypes.func,
     onHide: React.PropTypes.func,
-    contentContainerStyle: React.PropTypes.Object
+    contentContainerStyle: React.PropTypes.any
   };
 
   static defaultProps = {
