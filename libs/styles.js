@@ -21,6 +21,7 @@ export default StyleSheet.create({
     top: visibleHeight,
     left: 0,
     right: 0,
+    height: visibleHeight,
     alignSelf: 'stretch',
     backgroundColor: '#FFF'
   }
