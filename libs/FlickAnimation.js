@@ -13,7 +13,7 @@ type AnimationConfig = {
   velocity: number,
   fromValue: number,
   amplitude?: number
-}
+};
 
 export default class FlickAnimation {
   _active: boolean;

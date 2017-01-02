@@ -14,7 +14,7 @@ type Props = {
   onPanelMove: (value: number) => void,
   contentContainerStyle: Object,
   children?: any
-}
+};
 
 class SlidingUpPanel extends React.Component {
 
