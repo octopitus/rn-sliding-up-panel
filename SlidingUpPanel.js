@@ -14,7 +14,7 @@ class SlidingUpPanel extends React.Component {
   static propsTypes = {
     height: React.PropTypes.number,
     initialPosition: React.PropTypes.number,
-    disable: React.PropTypes.bool,
+    disableDragging: React.PropTypes.bool,
     onShow: React.PropTypes.func,
     onDrag: React.PropTypes.func,
     onHide: React.PropTypes.func,
@@ -22,7 +22,7 @@ class SlidingUpPanel extends React.Component {
   };
 
   static defaultProps = {
-    disable: false,
+    disableDragging: false,
     height: visibleHeight,
     onShow: () => {},
     onHide: () => {},
@@ -57,21 +57,21 @@ class SlidingUpPanel extends React.Component {
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
     this._flick.stop()
-    return !this.props.disable
+    return !this.props.disableDragging
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
     this._flick.stop()
 
-    if (this.props.disable) {
+    if (this.props.disableDragging) {
       return false
     }
 
     if (this._animatedValueY <= -this.props.height) {
-      return gestureState.dy > 0
+      return gestureState.dy > 1
     }
 
-    return Math.abs(gestureState.dy) > 0
+    return Math.abs(gestureState.dy) > 1
   }
 
   // eslint-disable-next-line no-unused-vars
