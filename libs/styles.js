@@ -15,14 +15,13 @@ export default StyleSheet.create({
     right: 0,
     backgroundColor: '#000'
   },
-  contentContainer: {
+  animatedContainer: {
     flex: 1,
     position: 'absolute',
     top: visibleHeight,
     left: 0,
     right: 0,
     height: visibleHeight,
-    alignSelf: 'stretch',
-    backgroundColor: '#FFF'
+    alignSelf: 'stretch'
   }
 })

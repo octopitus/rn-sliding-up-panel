@@ -12,23 +12,19 @@ const VMAX = 1.67
 class SlidingUpPanel extends React.Component {
 
   static propsTypes = {
-    minHeight: React.PropTypes.number.isRequired,
-    maxHeight: React.PropTypes.number.isRequired,
-    initialHeight: React.PropTypes.number.isRequired,
-    onShow: React.PropTypes.func.isRequired,
-    onMove: React.PropTypes.func.isRequired,
-    onHide: React.PropTypes.func.isRequired,
+    height: React.PropTypes.number,
+    initialPosition: React.PropTypes.number,
+    onShow: React.PropTypes.func,
+    onMove: React.PropTypes.func,
+    onHide: React.PropTypes.func,
     contentContainerStyle: React.PropTypes.Object
   };
 
   static defaultProps = {
-    minheight: 0,
-    maxHeight: visibleHeight,
-    initialHeight: visibleHeight / 2,
+    height: visibleHeight,
     onShow: () => {},
     onHide: () => {},
-    onMove: () => {},
-    contentContainerStyle: {}
+    onMove: () => {}
   };
 
   _panResponder: any;
@@ -44,14 +40,11 @@ class SlidingUpPanel extends React.Component {
 
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
-      onStartShouldSetResponderCapture: this._onStartShouldSetResponderCapture.bind(this),
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-      onMoveShouldSetPanResponderCapture: this._onMoveShouldSetPanResponderCapture.bind(this),
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-      onPanResponderTerminationRequest: () => true
+      onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
     })
   }
 
@@ -73,16 +66,11 @@ class SlidingUpPanel extends React.Component {
   _onMoveShouldSetPanResponder(evt, gestureState) {
     this._flick.stop()
 
-    if (this._animatedValueY <= -visibleHeight) {
-      return gestureState.dy > 1
+    if (this._animatedValueY <= -this.props.height) {
+      return gestureState.dy > 0
     }
 
-    return Math.abs(gestureState.dy) > 1
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  _onMoveShouldSetPanResponderCapture(evt, gestureState) {
-    return true
+    return Math.abs(gestureState.dy) > 0
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -93,7 +81,7 @@ class SlidingUpPanel extends React.Component {
 
   _onPanResponderMove(evt, gestureState) {
     if (
-      this._animatedValueY + gestureState.dy <= -visibleHeight
+      this._animatedValueY + gestureState.dy <= -this.props.height
     ) {
       return
     }
@@ -103,7 +91,7 @@ class SlidingUpPanel extends React.Component {
 
   _onPanResponderRelease(evt, gestureState) {
     if (
-      this._animatedValueY <= -visibleHeight &&
+      this._animatedValueY <= -this.props.height &&
       gestureState.dy <= 0
     ) {
       return
@@ -113,7 +101,7 @@ class SlidingUpPanel extends React.Component {
 
     const velocity = gestureState.vy
 
-    if (this._animatedValueY >= -visibleHeight / 2) {
+    if (this._animatedValueY >= -this.props.height / 2) {
       this.hide()
       return
     }
@@ -122,7 +110,10 @@ class SlidingUpPanel extends React.Component {
     const _delta = 325 * velocity
     const _nextValueY = this._animatedValueY + _delta
 
-    if (velocity >= VMAX || (_nextValueY >= -visibleHeight / 2 && gestureState.vy > 0)) {
+    if (
+      (_nextValueY >= -this.props.height / 2 && gestureState.vy > 0) ||
+      velocity >= VMAX
+    ) {
       this.hide()
       return
     }
@@ -143,38 +134,48 @@ class SlidingUpPanel extends React.Component {
     this._animatedValueY = value
     this.props.onMove(value)
     if (this._animatedValueY >= 0 && this.state.visible) {
-      this.hide()
+      this.setState({visible: false})
     }
   }
 
   _startShowAnimation = (): void => {
     const animationConfig = {
       duration: 220,
-      toValue: -visibleHeight / 2
-    }
-
-    // just for smooth transition on dev mode
-    if (__DEV__) {
-      animationConfig.delay = 110
+      toValue: -(this.props.initialPosition || this.props.height)
     }
 
     Animated.timing(
       this._translateYAnimation,
       animationConfig
-    ).start()
+    ).start(() => {
+      if (__DEV__) {
+        console.log('shown')
+      }
+
+      this.props.onShow()
+    })
   }
 
   render(): ?React.Element<any> {
-    const translateY = this._translateYAnimation
+    const translateY = this._translateYAnimation.interpolate({
+      inputRange: [-this.props.height, 0],
+      outputRange: [-this.props.height, 0],
+      extrapolate: 'clamp'
+    })
 
     const backdropOpacity = this._translateYAnimation.interpolate({
       inputRange: [-visibleHeight, 0],
-      outputRange: [0.75, 0]
+      outputRange: [0.75, 0],
+      extrapolate: 'clamp'
     })
 
     const transform = {transform: [{translateY}]}
 
-    const contentContainerStyle = this.props.contentContainerStyle
+    const animatedContainerStyles = [
+      styles.animatedContainer,
+      {height: this.props.height},
+      transform
+    ]
 
     return (
       <Modal
@@ -189,8 +190,8 @@ class SlidingUpPanel extends React.Component {
           </TouchableWithoutFeedback>
           <Animated.View
             {...this._panResponder.panHandlers}
-            style={[styles.contentContainer, contentContainerStyle, transform]}>
-            {this.props.children}
+            style={animatedContainerStyles}>
+            <View style={this.props.contentContainerStyle}>{this.props.children}</View>
           </Animated.View>
         </View>
       </Modal>
@@ -204,12 +205,17 @@ class SlidingUpPanel extends React.Component {
   hide = (): void => {
     this._translateYAnimation.setOffset(0)
 
-    const animation = Animated.timing(
+    Animated.timing(
       this._translateYAnimation,
       {duration: 220, toValue: 0}
-    )
+    ).start(() => {
+      if (__DEV__) {
+        console.log('hidden')
+      }
 
-    animation.start(() => this.setState({visible: false}))
+      this.setState({visible: false})
+      this.props.onHide()
+    })
   }
 }
 
