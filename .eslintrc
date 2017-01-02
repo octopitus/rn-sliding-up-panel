@@ -26,7 +26,7 @@
     "indent": [2, 2, {"SwitchCase": 1}],
     "quotes": [2,"single"],
     "linebreak-style": [2,"unix"],
-    "semi": [2, "always"],
+    "semi": [2, "never"],
     "no-console": 0,
     "max-len": [1,110],
     "comma-dangle": [2,"never"],
