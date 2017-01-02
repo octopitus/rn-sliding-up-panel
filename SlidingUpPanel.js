@@ -16,7 +16,7 @@ class SlidingUpPanel extends React.Component {
     initialPosition: React.PropTypes.number,
     disable: React.PropTypes.bool,
     onShow: React.PropTypes.func,
-    onMove: React.PropTypes.func,
+    onDrag: React.PropTypes.func,
     onHide: React.PropTypes.func,
     contentContainerStyle: React.PropTypes.Object
   };
@@ -26,7 +26,7 @@ class SlidingUpPanel extends React.Component {
     height: visibleHeight,
     onShow: () => {},
     onHide: () => {},
-    onMove: () => {}
+    onDrag: () => {}
   };
 
   _panResponder: any;
@@ -38,7 +38,7 @@ class SlidingUpPanel extends React.Component {
   state = {visible: false};
 
   componentWillMount() {
-    this._translateYAnimation.addListener(this._onMove)
+    this._translateYAnimation.addListener(this._onDrag)
 
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
@@ -51,7 +51,7 @@ class SlidingUpPanel extends React.Component {
   }
 
   componentWillUnmount() {
-    this._translateYAnimation.removeListener(this._onMove)
+    this._translateYAnimation.removeListener(this._onDrag)
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -131,9 +131,9 @@ class SlidingUpPanel extends React.Component {
     //
   }
 
-  _onMove = ({value}: {value: number}): void => {
+  _onDrag = ({value}: {value: number}): void => {
     this._animatedValueY = value
-    this.props.onMove(value)
+    this.props.onDrag(value)
     if (this._animatedValueY >= 0 && this.state.visible) {
       this.setState({visible: false})
     }
