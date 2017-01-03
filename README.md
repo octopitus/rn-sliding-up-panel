@@ -1,5 +1,9 @@
 React Native draggable sliding up panel purly implemented in Javascript. Works nicely on both iOS and Android.
 
+----------
+<img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/sliding_panel_android.gif" height="480" />
+<img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/sliding_panel_ios.gif" height="480" />
+
 # Installation
 
     npm install --save rn-sliding-up-panel
