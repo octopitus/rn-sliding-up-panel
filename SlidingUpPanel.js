@@ -1,11 +1,17 @@
 /* @flow */
 
 import React from 'react'
-import {Modal, View, TouchableWithoutFeedback, Animated, PanResponder} from 'react-native'
+import {Modal, View, TouchableWithoutFeedback, Animated, PanResponder, Platform} from 'react-native'
 
 import {visibleHeight} from './libs/layout'
 import FlickAnimation from './libs/FlickAnimation'
 import styles from './libs/styles'
+
+type AnimateConfig = {
+  duration?: number,
+  delay?: number,
+  easing?: (t: number) => number
+};
 
 const VMAX = 1.67
 
@@ -139,9 +145,10 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  _startShowAnimation = (): void => {
+  _startShowAnimation = (config: AnimateConfig = {}): void => {
     const animationConfig = {
-      duration: 220,
+      duration: 260,
+      ...config,
       toValue: -(this.props.initialPosition || this.props.height)
     }
 
@@ -182,7 +189,6 @@ class SlidingUpPanel extends React.Component {
       <Modal
         transparent
         animationType='fade'
-        onShow={this._startShowAnimation}
         onRequestClose={this.hide}
         visible={this.state.visible}>
         <View style={styles.container}>
@@ -199,16 +205,21 @@ class SlidingUpPanel extends React.Component {
     )
   }
 
-  show = (): void => {
-    this.setState({visible: true})
+  show = (config: AnimateConfig = {}): void => {
+    if (Platform.OS === 'android') {
+      // to make it looks smooth on android
+      config.delay = config.delay || 166.67
+    }
+
+    this.setState({visible: true}, () => this._startShowAnimation(config))
   }
 
-  hide = (): void => {
+  hide = (config: AnimateConfig = {}): void => {
     this._translateYAnimation.setOffset(0)
 
     Animated.timing(
       this._translateYAnimation,
-      {duration: 220, toValue: 0}
+      {duration: 260, ...config, toValue: 0}
     ).start(() => {
       if (__DEV__) {
         console.log('hidden')

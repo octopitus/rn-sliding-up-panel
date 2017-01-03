@@ -39,3 +39,5 @@ jspm_packages
 # VSCode
 .vscode
 jsconfig.json
+
+.DS_Store
