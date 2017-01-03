@@ -146,22 +146,13 @@ class SlidingUpPanel extends React.Component {
   }
 
   _startShowAnimation = (config: AnimateConfig = {}): void => {
-    const animationConfig = {
-      duration: 260,
-      ...config,
-      toValue: -(this.props.initialPosition || this.props.height)
-    }
+    config.duration = config.duration || 260
+    config.toValue = -(this.props.initialPosition || this.props.height)
 
     Animated.timing(
       this._translateYAnimation,
-      animationConfig
-    ).start(() => {
-      if (__DEV__) {
-        console.log('shown')
-      }
-
-      this.props.onShow()
-    })
+      config
+    ).start(() => this.props.onShow())
   }
 
   render(): ?React.Element<any> {
@@ -189,10 +180,10 @@ class SlidingUpPanel extends React.Component {
       <Modal
         transparent
         animationType='fade'
-        onRequestClose={this.hide}
+        onRequestClose={() => this.hide()}
         visible={this.state.visible}>
         <View style={styles.container}>
-          <TouchableWithoutFeedback onPressIn={() => this._flick.stop()} onPress={this.hide}>
+          <TouchableWithoutFeedback onPressIn={() => this._flick.stop()} onPress={() => this.hide()}>
             <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
           </TouchableWithoutFeedback>
           <Animated.View
@@ -215,16 +206,15 @@ class SlidingUpPanel extends React.Component {
   }
 
   hide = (config: AnimateConfig = {}): void => {
+    config.duration = config.duration || 260
+    config.toValue = 0
+
     this._translateYAnimation.setOffset(0)
 
     Animated.timing(
       this._translateYAnimation,
-      {duration: 260, ...config, toValue: 0}
+      config
     ).start(() => {
-      if (__DEV__) {
-        console.log('hidden')
-      }
-
       this.setState({visible: false})
       this.props.onHide()
     })
