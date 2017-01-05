@@ -10,7 +10,8 @@ import styles from './libs/styles'
 type AnimateConfig = {
   duration?: number,
   delay?: number,
-  easing?: (t: number) => number
+  easing?: (t: number) => number,
+  toValue?: number
 };
 
 const VMAX = 1.67
