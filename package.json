@@ -14,9 +14,9 @@
   "keywords": [
     "react",
     "react-native",
-    "react-native-component",
-    "ui",
-    "mobile",
+    "react-component",
+    "ios",
+    "android",
     "sliding",
     "panel",
     "sliding-up-panel"
