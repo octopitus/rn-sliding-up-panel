@@ -1,4 +1,3 @@
-/* @flow */
 import {StyleSheet} from 'react-native'
 import {visibleHeight} from './layout'
 

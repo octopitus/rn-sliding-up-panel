@@ -1,4 +1,3 @@
-/* @flow */
 import {Platform, StatusBar, Dimensions} from 'react-native'
 
 const statusBarHeight = Platform.OS === 'ios' ? 0 : StatusBar.currentHeight
