@@ -27,6 +27,7 @@ class SlidingUpPanel extends React.Component {
     onShow: () => {},
     onHide: () => {},
     onDrag: () => {},
+    onRequestClose: () => {},
     showBackdrop: true
   };
 
