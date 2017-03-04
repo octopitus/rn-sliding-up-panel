@@ -1,5 +1,4 @@
-/* @flow */
-import {Animated, PixelRatio} from 'react-native'
+import {PixelRatio} from 'react-native'
 import {visibleHeight} from './layout'
 
 const density = PixelRatio.get()
@@ -7,30 +6,15 @@ const density = PixelRatio.get()
 const MAX = 0
 const MIN = -visibleHeight
 
-const TIME_CONTANT: number = 325
-
-type AnimationConfig = {
-  velocity: number,
-  fromValue: number,
-  amplitude?: number
-};
+const TIME_CONTANT = 325
 
 export default class FlickAnimation {
-  _active: boolean;
 
-  _velocity: number;
-  _amplitude: number;
-  _startTime: number;
-
-  _toValue: number;
-  _animationFrame: any;
-  _animation: Animated.Value;
-
-  constructor(animation: Animated.Value) {
+  constructor(animation) {
     this._animation = animation
   }
 
-  _scroll(toValue: number): void {
+  _scroll(toValue) {
     // eslint-disable-next-line no-nested-ternary
     const offset = (toValue > MAX) ? MAX : (toValue < MIN) ? MIN : toValue
     this._animation.setValue(offset)
@@ -40,7 +24,7 @@ export default class FlickAnimation {
     }
   }
 
-  start(config: AnimationConfig): void {
+  start(config) {
     this._active = true
     // eslint-disable-next-line eqeqeq
     this._amplitude = config.amplitude != null ? config.amplitude : 0.8
@@ -50,7 +34,7 @@ export default class FlickAnimation {
     this._animationFrame = requestAnimationFrame(this.onUpdate.bind(this))
   }
 
-  onUpdate(): void {
+  onUpdate() {
     if (!this._active) {
       return
     }
@@ -67,7 +51,7 @@ export default class FlickAnimation {
     this._animationFrame = requestAnimationFrame(this.onUpdate.bind(this))
   }
 
-  stop(): void {
+  stop() {
     this._active = false
     this._animation.stopAnimation()
     global.cancelAnimationFrame(this._animationFrame)
