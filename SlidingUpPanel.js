@@ -5,26 +5,29 @@ import FlickAnimation from './libs/FlickAnimation'
 import {visibleHeight} from './libs/layout'
 import styles from './libs/styles'
 
-const VMAX = 1.67
-
 class SlidingUpPanel extends React.Component {
 
   static propsTypes = {
+    visible: React.PropTypes.bool.isRequired,
+    onRequestClose: React.PropTypes.func.isRequired,
     height: React.PropTypes.number,
     initialPosition: React.PropTypes.number,
     disableDragging: React.PropTypes.bool,
     onShow: React.PropTypes.func,
     onDrag: React.PropTypes.func,
     onHide: React.PropTypes.func,
-    contentContainerStyle: React.PropTypes.any
+    showBackdrop: React.PropTypes.bool,
+    contentStyle: React.PropTypes.any
   };
 
   static defaultProps = {
     disableDragging: false,
     height: visibleHeight,
+    initialPosition: 0,
     onShow: () => {},
     onHide: () => {},
-    onDrag: () => {}
+    onDrag: () => {},
+    showBackdrop: true
   };
 
   _panResponder: any;
@@ -33,7 +36,14 @@ class SlidingUpPanel extends React.Component {
   _translateYAnimation = new Animated.Value(0);
   _flick = new FlickAnimation(this._translateYAnimation);
 
-  state = {visible: false};
+  constructor(props) {
+    super(props)
+
+    this._onDrag = this._onDrag.bind(this)
+    this._onHide = this._onHide.bind(this)
+    this._onShow = this._onShow.bind(this)
+    this._renderBackdrop = this._renderBackdrop.bind(this)
+  }
 
   componentWillMount() {
     this._translateYAnimation.addListener(this._onDrag)
@@ -46,6 +56,12 @@ class SlidingUpPanel extends React.Component {
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
       onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
     })
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.visible && !this.props.visible) {
+      this._onShow()
+    }
   }
 
   componentWillUnmount() {
@@ -100,23 +116,6 @@ class SlidingUpPanel extends React.Component {
 
     const velocity = gestureState.vy
 
-    if (this._animatedValueY >= -this.props.height / 2) {
-      this.hide()
-      return
-    }
-
-    // Predict if the panel closes in 20 frames
-    const _delta = 325 * velocity
-    const _nextValueY = this._animatedValueY + _delta
-
-    if (
-      (_nextValueY >= -this.props.height / 2 && gestureState.vy > 0) ||
-      velocity >= VMAX
-    ) {
-      this.hide()
-      return
-    }
-
     if (Math.abs(gestureState.vy) > 0.1) {
       this._flick.start({velocity, fromValue: this._animatedValueY})
     }
@@ -132,27 +131,46 @@ class SlidingUpPanel extends React.Component {
   _onDrag({value}) {
     this._animatedValueY = value
     this.props.onDrag(value)
-    if (this._animatedValueY >= 0 && this.state.visible) {
-      this.setState({visible: false})
+    if (this._animatedValueY >= 0 && this.props.visible) {
+      this.props.onRequestClose()
     }
   }
 
-  _startShowAnimation(config = {}) {
-    config.duration = config.duration || 260
-    config.toValue = -(this.props.initialPosition || this.props.height)
+  _onShow() {
+    const animationConfig = {
+      duration: 260,
+      toValue: -this.props.height,
+      // eslint-disable-next-line no-undefined
+      delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
+    }
 
     Animated.timing(
       this._translateYAnimation,
-      config
-    ).start(() => this.props.onShow())
+      animationConfig
+    ).start(() => {
+      this.props.onShow()
+    })
   }
 
-  render(): ?React.Element<any> {
-    const translateY = this._translateYAnimation.interpolate({
-      inputRange: [-this.props.height, 0],
-      outputRange: [-this.props.height, 0],
-      extrapolate: 'clamp'
+  _onHide() {
+    const animationConfig = {
+      duration: 260,
+      toValue: 0
+    }
+
+    Animated.timing(
+      this._translateYAnimation,
+      animationConfig
+    ).start(() => {
+      this._translateYAnimation.setValue(0)
+      this.props.onHide()
     })
+  }
+
+  _renderBackdrop() {
+    if (!this.props.showBackdrop) {
+      return null
+    }
 
     const backdropOpacity = this._translateYAnimation.interpolate({
       inputRange: [-visibleHeight, 0],
@@ -160,10 +178,25 @@ class SlidingUpPanel extends React.Component {
       extrapolate: 'clamp'
     })
 
+    return (
+      <TouchableWithoutFeedback onPressIn={() => this._flick.stop()} onPress={this._onHide}>
+        <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
+      </TouchableWithoutFeedback>
+    )
+  }
+
+  render() {
+    const translateY = this._translateYAnimation.interpolate({
+      inputRange: [-this.props.height, 0],
+      outputRange: [-this.props.height, 0],
+      extrapolate: 'clamp'
+    })
+
     const transform = {transform: [{translateY}]}
 
     const animatedContainerStyles = [
       styles.animatedContainer,
+      {top: this.props.height},
       {height: this.props.height},
       transform
     ]
@@ -172,44 +205,20 @@ class SlidingUpPanel extends React.Component {
       <Modal
         transparent
         animationType='fade'
-        onRequestClose={() => this.hide()}
-        visible={this.state.visible}>
+        onRequestClose={this._onHide}
+        visible={this.props.visible}>
         <View style={styles.container}>
-          <TouchableWithoutFeedback onPressIn={() => this._flick.stop()} onPress={() => this.hide()}>
-            <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
-          </TouchableWithoutFeedback>
+          {this._renderBackdrop()}
           <Animated.View
             {...this._panResponder.panHandlers}
             style={animatedContainerStyles}>
-            <View style={this.props.contentContainerStyle}>{this.props.children}</View>
+            <View style={this.props.contentStyle}>
+              {this.props.children}
+            </View>
           </Animated.View>
         </View>
       </Modal>
     )
-  }
-
-  show(config = {}) {
-    if (Platform.OS === 'android') {
-      // to make it looks smooth on android
-      config.delay = config.delay || 166.67
-    }
-
-    this.setState({visible: true}, () => this._startShowAnimation(config))
-  }
-
-  hide(config = {}) {
-    config.duration = config.duration || 260
-    config.toValue = 0
-
-    this._translateYAnimation.setOffset(0)
-
-    Animated.timing(
-      this._translateYAnimation,
-      config
-    ).start(() => {
-      this.setState({visible: false})
-      this.props.onHide()
-    })
   }
 }
 
