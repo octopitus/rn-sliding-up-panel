@@ -1,12 +1,18 @@
 import React from 'react'
-import {Modal, View, TouchableWithoutFeedback, Animated, PanResponder, Platform} from 'react-native'
+import {
+  Modal,
+  View,
+  TouchableWithoutFeedback,
+  Animated,
+  PanResponder,
+  Platform
+} from 'react-native'
 
 import FlickAnimation from './libs/FlickAnimation'
 import {visibleHeight} from './libs/layout'
 import styles from './libs/styles'
 
 class SlidingUpPanel extends React.Component {
-
   static propsTypes = {
     visible: React.PropTypes.bool.isRequired,
     onRequestClose: React.PropTypes.func.isRequired,
@@ -33,8 +39,8 @@ class SlidingUpPanel extends React.Component {
     super(props)
 
     this._onDrag = this._onDrag.bind(this)
-    this._onHide = this._onHide.bind(this)
-    this._onShow = this._onShow.bind(this)
+    this._requestClose = this._requestClose.bind(this)
+    this._transilateTo = this._transilateTo.bind(this)
     this._onAnimationRange = this._onAnimationRange.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
   }
@@ -59,16 +65,17 @@ class SlidingUpPanel extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.visible && !this.props.visible) {
-      this._onShow()
+      this._transilateTo(
+        {toValue: -this.props.animationRange.top},
+        () => this.props.onShow()
+      )
     }
   }
 
   componentDidUpdate() {
-    if (
-      !this.props.visible &&
-      this._animatedValueY !== this.props.animationRange.bottom
-    ) {
-      this._translateYAnimation.setValue(0)
+    const {bottom} = this.props.animationRange
+    if (this._animatedValueY !== -bottom && !this.props.visible) {
+      this._translateYAnimation.setValue(-bottom)
     }
   }
 
@@ -96,27 +103,26 @@ class SlidingUpPanel extends React.Component {
   }
 
   _onPanResponderMove(evt, gestureState) {
-    if (!this._onAnimationRange(this._animatedValueY + gestureState.dy)) {
+    if (!this._onAnimationRange(this._animatedValueY)) {
       return
     }
 
     this._translateYAnimation.setValue(gestureState.dy)
   }
 
+  // Trigger when you release your finger
   _onPanResponderRelease(evt, gestureState) {
-    if (
-      this._animatedValueY <= -this.props.animationRange.top &&
-      gestureState.dy <= 0
-    ) {
+    if (!this._onAnimationRange(this._animatedValueY)) {
       return
     }
 
     this._translateYAnimation.flattenOffset()
 
-    const velocity = gestureState.vy
-
     if (Math.abs(gestureState.vy) > 0.1) {
-      this._flick.start({velocity, fromValue: this._animatedValueY})
+      this._flick.start({
+        velocity: gestureState.vy,
+        fromValue: this._animatedValueY
+      })
     }
 
     return
@@ -141,18 +147,18 @@ class SlidingUpPanel extends React.Component {
     }
 
     if (
-      this._animatedValueY >= -this.props.animationRange.bottom &&
-      this.props.visible
+      this.props.visible &&
+      this._animatedValueY >= -this.props.animationRange.bottom
     ) {
       this.props.onRequestClose()
       return
     }
   }
 
-  _onShow() {
+  _transilateTo(config = {}, onAnimationEnd = () => {}) {
     const animationConfig = {
-      duration: 260,
-      toValue: -this.props.animationRange.top,
+      toValue: config.toValue,
+      duration: config.duration || 260,
       // eslint-disable-next-line no-undefined
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
@@ -160,21 +166,14 @@ class SlidingUpPanel extends React.Component {
     Animated.timing(
       this._translateYAnimation,
       animationConfig
-    ).start(() => {
-      this.props.onShow()
-    })
+    ).start(onAnimationEnd)
   }
 
-  _onHide() {
-    const animationConfig = {
-      duration: 260,
-      toValue: -this.props.animationRange.bottom
-    }
-
-    Animated.timing(
-      this._translateYAnimation,
-      animationConfig
-    ).start(() => this.props.onRequestClose())
+  _requestClose() {
+    return this._transilateTo(
+      {toValue: -this.props.animationRange.bottom},
+      () => this.props.onRequestClose()
+    )
   }
 
   _renderBackdrop() {
@@ -191,7 +190,9 @@ class SlidingUpPanel extends React.Component {
     })
 
     return (
-      <TouchableWithoutFeedback onPressIn={() => this._flick.stop()} onPress={this._onHide}>
+      <TouchableWithoutFeedback
+        onPressIn={() => this._flick.stop()}
+        onPress={() => this._requestClose()}>
         <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
       </TouchableWithoutFeedback>
     )
@@ -219,13 +220,11 @@ class SlidingUpPanel extends React.Component {
       <Modal
         transparent
         animationType='fade'
-        onRequestClose={this._onHide}
+        onRequestClose={() => this._requestClose()}
         visible={this.props.visible}>
         <View style={styles.container}>
           {this._renderBackdrop()}
-          <Animated.View
-            {...this._panResponder.panHandlers}
-            style={animatedContainerStyles}>
+          <Animated.View {...this._panResponder.panHandlers} style={animatedContainerStyles}>
             <View style={this.props.contentStyle}>
               {this.props.children}
             </View>
