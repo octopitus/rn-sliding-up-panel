@@ -15,7 +15,6 @@ class SlidingUpPanel extends React.Component {
     disableDragging: React.PropTypes.bool,
     onShow: React.PropTypes.func,
     onDrag: React.PropTypes.func,
-    onHide: React.PropTypes.func,
     showBackdrop: React.PropTypes.bool,
     contentStyle: React.PropTypes.any
   };
@@ -23,19 +22,12 @@ class SlidingUpPanel extends React.Component {
   static defaultProps = {
     disableDragging: false,
     height: visibleHeight,
-    initialPosition: 0,
+    animationRange: {top: visibleHeight, bottom: 0},
     onShow: () => {},
-    onHide: () => {},
     onDrag: () => {},
     onRequestClose: () => {},
     showBackdrop: true
   };
-
-  _panResponder: any;
-
-  _animatedValueY = 0;
-  _translateYAnimation = new Animated.Value(0);
-  _flick = new FlickAnimation(this._translateYAnimation);
 
   constructor(props) {
     super(props)
@@ -43,11 +35,15 @@ class SlidingUpPanel extends React.Component {
     this._onDrag = this._onDrag.bind(this)
     this._onHide = this._onHide.bind(this)
     this._onShow = this._onShow.bind(this)
+    this._onAnimationRange = this._onAnimationRange.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
   }
 
   componentWillMount() {
-    this._translateYAnimation.addListener(this._onDrag)
+    this._animatedValueY = -this.props.animationRange.bottom
+
+    this._translateYAnimation = new Animated.Value(this._animatedValueY)
+    this._flick = new FlickAnimation(this._translateYAnimation)
 
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
@@ -57,6 +53,8 @@ class SlidingUpPanel extends React.Component {
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
       onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
     })
+
+    this._translateYAnimation.addListener(this._onDrag)
   }
 
   componentWillReceiveProps(nextProps) {
@@ -65,40 +63,40 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-    this._translateYAnimation.removeListener(this._onDrag)
+  componentDidUpdate() {
+    if (
+      !this.props.visible &&
+      this._animatedValueY !== this.props.animationRange.bottom
+    ) {
+      this._translateYAnimation.setValue(0)
+    }
   }
 
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
-    this._flick.stop()
-    return !this.props.disableDragging
+    return (
+      !this.props.disableDragging &&
+      this._onAnimationRange(this._animatedValueY)
+    )
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
-    this._flick.stop()
-
-    if (this.props.disableDragging) {
-      return false
-    }
-
-    if (this._animatedValueY <= -this.props.height) {
-      return gestureState.dy > 1
-    }
-
-    return Math.abs(gestureState.dy) > 1
+    return (
+      !this.props.disableDragging &&
+      this._onAnimationRange(this._animatedValueY) &&
+      Math.abs(gestureState.dy) > 1
+    )
   }
 
   // eslint-disable-next-line no-unused-vars
   _onPanResponderGrant(evt, gestureState) {
+    this._flick.stop()
     this._translateYAnimation.setOffset(this._animatedValueY)
     this._translateYAnimation.setValue(0)
   }
 
   _onPanResponderMove(evt, gestureState) {
-    if (
-      this._animatedValueY + gestureState.dy <= -this.props.height
-    ) {
+    if (!this._onAnimationRange(this._animatedValueY + gestureState.dy)) {
       return
     }
 
@@ -107,7 +105,7 @@ class SlidingUpPanel extends React.Component {
 
   _onPanResponderRelease(evt, gestureState) {
     if (
-      this._animatedValueY <= -this.props.height &&
+      this._animatedValueY <= -this.props.animationRange.top &&
       gestureState.dy <= 0
     ) {
       return
@@ -129,18 +127,32 @@ class SlidingUpPanel extends React.Component {
     //
   }
 
+  _onAnimationRange(value) {
+    return (
+      value >= -this.props.animationRange.top &&
+      value <= -this.props.animationRange.bottom
+    )
+  }
+
   _onDrag({value}) {
-    this._animatedValueY = value
-    this.props.onDrag(value)
-    if (this._animatedValueY >= 0 && this.props.visible) {
+    if (this._onAnimationRange(value)) {
+      this._animatedValueY = value
+      this.props.onDrag(value)
+    }
+
+    if (
+      this._animatedValueY >= -this.props.animationRange.bottom &&
+      this.props.visible
+    ) {
       this.props.onRequestClose()
+      return
     }
   }
 
   _onShow() {
     const animationConfig = {
       duration: 260,
-      toValue: -this.props.height,
+      toValue: -this.props.animationRange.top,
       // eslint-disable-next-line no-undefined
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
@@ -156,16 +168,13 @@ class SlidingUpPanel extends React.Component {
   _onHide() {
     const animationConfig = {
       duration: 260,
-      toValue: 0
+      toValue: -this.props.animationRange.bottom
     }
 
     Animated.timing(
       this._translateYAnimation,
       animationConfig
-    ).start(() => {
-      this._translateYAnimation.setValue(0)
-      this.props.onHide()
-    })
+    ).start(() => this.props.onRequestClose())
   }
 
   _renderBackdrop() {
@@ -173,9 +182,11 @@ class SlidingUpPanel extends React.Component {
       return null
     }
 
+    const {top, bottom} = this.props.animationRange
+
     const backdropOpacity = this._translateYAnimation.interpolate({
-      inputRange: [-visibleHeight, 0],
-      outputRange: [0.75, 0],
+      inputRange: [-top, -bottom],
+      outputRange: [0.75, bottom / visibleHeight],
       extrapolate: 'clamp'
     })
 
@@ -187,9 +198,11 @@ class SlidingUpPanel extends React.Component {
   }
 
   render() {
+    const {top, bottom} = this.props.animationRange
+
     const translateY = this._translateYAnimation.interpolate({
-      inputRange: [-this.props.height, 0],
-      outputRange: [-this.props.height, 0],
+      inputRange: [-top, -bottom],
+      outputRange: [-top, -bottom],
       extrapolate: 'clamp'
     })
 
