@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native'
+import {visibleHeight} from './layout'
 
 export default StyleSheet.create({
   container: {
@@ -16,8 +17,10 @@ export default StyleSheet.create({
   animatedContainer: {
     flex: 1,
     position: 'absolute',
+    top: visibleHeight,
     left: 0,
     right: 0,
+    height: visibleHeight,
     alignSelf: 'stretch'
   }
 })
