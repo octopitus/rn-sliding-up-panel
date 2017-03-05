@@ -17,7 +17,7 @@ or if you are using [yarn](http://yarnpkg.com)
 
 ```js
 import React from 'react'
-import {View, Text} from 'react-native'
+import {View, Button, Text} from 'react-native'
 
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
@@ -31,13 +31,22 @@ const styles = {
 }
 
 class MyComponent extends React.Component {
+  state = {
+    visible: false
+  }
+
   render() {
     return (
       <View style={styles.container}>
-        <SlidingUpPanel ref={c => this._panel = c} contentContainerStyle={styles.container}>
-          <Text>Here is the content inside the panel</Text>
-        </SlidingUpPanel>
-        <TouchableOpacity onPress={() => this._panel.show()}>
+        <SlidingUpPanelComponent
+          ref={c => this._panel = c}
+          visible={this.state.visible}
+          onRequestClose={() => this.setState({visible: false})}
+          contentStyle={styles.container}>
+          <Text>Here is the content inside panel</Text>
+          <Button title='hide' onPress={() => this._panel.transitionTo(0)} />
+        </SlidingUpPanelComponent>
+        <TouchableOpacity onPress={() => this.setState({visible: true})}>
           <Text>Show panel</Text>
         </TouchableOpacity>
       </View>
@@ -50,18 +59,18 @@ class MyComponent extends React.Component {
 
 |Property|Type|Description|
 |---|---|---|
-|height|number|Height of the panel. Default is the height window minus the height of status bar. **Note:** If you enabled the translucency of status bar, you must set this property to the height of window (`Dimensions.get('window').height`)
-|initialPosition|number|Initial position of the panel. Default is the height of panel.
-|disableDragging|boolean|Set to `true` to disable dragging. You must touch outside the panel or press back button (Android) to hide.
-|onDrag|Function|Called when your panel is dragging. Fires at most once per frame.
-|onShow|Function|Called once the panel has been shown.
-|onHide|Function|Called once the panel has been completely hidden.
-|contentContainerStyle|any|The style of the content container (View)
+|visible|boolean|Controls how panel should visible or not.
+|draggableRange|{top: number, bottom: number}|You can not drag panel out of this range. `top` default to visible height of device, `bottom` default to 0.
+|onDragStart|Function|Called when panel is about to start dragging.
+|onDrag|Function|Called when panel is dragging. Fires at most once per frame.
+|onDragEnd|Function|Called when you release your fingers.
+|showBackdrop|boolean|Set to `false` to hide the backdrop behide panel. Default `true`.
+|allowDragging|boolean|Set to `false` to disable dragging. Touch outside panel or press back button (Android) to hide. Default `true`.
+|allowMomentum|boolean|If `false`, panel will not continue to move when you release your fingers. Default `true`.
+|contentStyle|any|The style of the content inside panel.
 
 # Methods
 
-## show: (config?: Object) => void
+## transitionTo: (value: number, onComplete: Function)
 
-## hide: (config?: Object) => void
-
-Programmatically show / hide the panel. Config accepts `duration`, `delay`, `easing` (Likes [Animated.timing](http://facebook.github.io/react-native/releases/0.39/docs/animated.html#timing))
+Programmatically move panel to a given value.
