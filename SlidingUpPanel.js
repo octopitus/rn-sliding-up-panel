@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  Modal,
   View,
   TouchableWithoutFeedback,
   Animated,
@@ -209,6 +208,10 @@ class SlidingUpPanel extends React.Component {
   }
 
   render() {
+    if (!this.props.visible) {
+      return null
+    }
+
     const {top, bottom} = this.props.draggableRange
 
     const translateY = this._translateYAnimation.interpolate({
@@ -225,18 +228,12 @@ class SlidingUpPanel extends React.Component {
     ]
 
     return (
-      <Modal
-        transparent
-        animationType='fade'
-        onRequestClose={() => this._requestClose()}
-        visible={this.props.visible}>
-        <View style={styles.container}>
-          {this._renderBackdrop()}
-          <Animated.View {...this._panResponder.panHandlers} style={animatedContainerStyles}>
-            {this.props.children}
-          </Animated.View>
-        </View>
-      </Modal>
+      <View style={styles.container} pointerEvents='box-none'>
+        {this._renderBackdrop()}
+        <Animated.View {...this._panResponder.panHandlers} style={animatedContainerStyles}>
+          {this.props.children}
+        </Animated.View>
+      </View>
     )
   }
 }
