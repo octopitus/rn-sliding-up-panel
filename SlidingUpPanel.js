@@ -26,8 +26,7 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: React.PropTypes.func,
     allowMomentum: React.PropTypes.bool,
     allowDragging: React.PropTypes.bool,
-    showBackdrop: React.PropTypes.bool,
-    contentStyle: React.PropTypes.any
+    showBackdrop: React.PropTypes.bool
   };
 
   static defaultProps = {
@@ -234,9 +233,7 @@ class SlidingUpPanel extends React.Component {
         <View style={styles.container}>
           {this._renderBackdrop()}
           <Animated.View {...this._panResponder.panHandlers} style={animatedContainerStyles}>
-            <View style={this.props.contentStyle}>
-              {this.props.children}
-            </View>
+            {this.props.children}
           </Animated.View>
         </View>
       </Modal>
