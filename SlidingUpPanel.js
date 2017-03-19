@@ -155,10 +155,7 @@ class SlidingUpPanel extends React.Component {
       this.props.onDrag(value)
     }
 
-    if (
-      this.props.visible &&
-      this._animatedValueY >= -this.props.draggableRange.bottom
-    ) {
+    if (value >= -this.props.draggableRange.bottom) {
       this.props.onRequestClose()
       return
     }
@@ -179,6 +176,11 @@ class SlidingUpPanel extends React.Component {
   }
 
   _requestClose() {
+    const {bottom} = this.props.draggableRange
+    if (this._animatedValueY === -bottom) {
+      return this.props.onRequestClose()
+    }
+
     return this.transitionTo(
       -this.props.draggableRange.bottom,
       () => this.props.onRequestClose()
