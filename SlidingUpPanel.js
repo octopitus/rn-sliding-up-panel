@@ -11,6 +11,8 @@ import FlickAnimation from './libs/FlickAnimation'
 import {visibleHeight} from './libs/layout'
 import styles from './libs/styles'
 
+const deprecated = (condition, message) => condition && console.warn(message)
+
 class SlidingUpPanel extends React.Component {
 
   static propTypes = {
@@ -52,6 +54,14 @@ class SlidingUpPanel extends React.Component {
   }
 
   componentWillMount() {
+    if (__DEV__) {
+      deprecated(
+        this.props.contentStyle,
+        'SlidingUpPanel#contentStyle is deprecated. ' +
+        'You should wrap your content inside a View.'
+      )
+    }
+
     this._animatedValueY = -this.props.draggableRange.bottom
 
     this._translateYAnimation = new Animated.Value(this._animatedValueY)
@@ -226,7 +236,8 @@ class SlidingUpPanel extends React.Component {
 
     const animatedContainerStyles = [
       styles.animatedContainer,
-      transform
+      transform,
+      this.props.contentStyle
     ]
 
     return (

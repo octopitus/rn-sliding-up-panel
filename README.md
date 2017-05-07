@@ -41,10 +41,11 @@ class MyComponent extends React.Component {
         <SlidingUpPanelComponent
           ref={c => this._panel = c}
           visible={this.state.visible}
-          onRequestClose={() => this.setState({visible: false})}
-          contentStyle={styles.container}>
-          <Text>Here is the content inside panel</Text>
-          <Button title='hide' onPress={() => this._panel.transitionTo(0)} />
+          onRequestClose={() => this.setState({visible: false})}>
+          <View style={styles.container}>
+            <Text>Here is the content inside panel</Text>
+            <Button title='hide' onPress={() => this._panel.transitionTo(0)} />
+          </View>
         </SlidingUpPanelComponent>
         <TouchableOpacity onPress={() => this.setState({visible: true})}>
           <Text>Show panel</Text>
@@ -67,7 +68,7 @@ class MyComponent extends React.Component {
 |showBackdrop|boolean|Set to `false` to hide the backdrop behide panel. Default `true`.
 |allowDragging|boolean|Set to `false` to disable dragging. Touch outside panel or press back button (Android) to hide. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your fingers. Default `true`.
-|contentStyle|any|The style of the content inside panel.
+|~~contentStyle~~|~~ViewStyle~~|~~The style of content inside panel.~~ Deprecated. You should wrap your content inside a View.
 
 # Methods
 
