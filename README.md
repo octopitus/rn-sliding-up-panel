@@ -16,8 +16,8 @@ or if you are using [yarn](http://yarnpkg.com)
 # Usage
 
 ```js
-import React from 'react'
-import {View, Button, Text} from 'react-native'
+import React from 'react';
+import {View, Button, Text, TouchableOpacity} from 'react-native'
 
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
@@ -38,7 +38,7 @@ class MyComponent extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <SlidingUpPanelComponent
+        <SlidingUpPanel
           ref={c => this._panel = c}
           visible={this.state.visible}
           onRequestClose={() => this.setState({visible: false})}>
@@ -46,7 +46,7 @@ class MyComponent extends React.Component {
             <Text>Here is the content inside panel</Text>
             <Button title='hide' onPress={() => this._panel.transitionTo(0)} />
           </View>
-        </SlidingUpPanelComponent>
+        </SlidingUpPanel>
         <TouchableOpacity onPress={() => this.setState({visible: true})}>
           <Text>Show panel</Text>
         </TouchableOpacity>
