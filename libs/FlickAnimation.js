@@ -1,25 +1,23 @@
 import {PixelRatio} from 'react-native'
-import {visibleHeight} from './layout'
 
 const density = PixelRatio.get()
-
-const MAX = 0
-const MIN = -visibleHeight
 
 const TIME_CONTANT = 325
 
 export default class FlickAnimation {
 
-  constructor(animation) {
+  constructor(animation, min, max) {
     this._animation = animation
+    this._min = min
+    this._max = max
   }
 
   _scroll(toValue) {
     // eslint-disable-next-line no-nested-ternary
-    const offset = (toValue > MAX) ? MAX : (toValue < MIN) ? MIN : toValue
+    const offset = (toValue > this._max) ? this._max : (toValue < this._min) ? this._min : toValue
     this._animation.setValue(offset)
 
-    if (offset === MIN || offset === MAX) {
+    if (offset === this._min || offset === this._max) {
       this.stop()
     }
   }
