@@ -21,6 +21,7 @@ class SlidingUpPanel extends React.Component {
       top: React.PropTypes.number.isRequired,
       bottom: React.PropTypes.number.isRequired
     }),
+    height: React.PropTypes.number,
     onDrag: React.PropTypes.func,
     onDragStart: React.PropTypes.func,
     onDragEnd: React.PropTypes.func,
@@ -62,10 +63,11 @@ class SlidingUpPanel extends React.Component {
       )
     }
 
-    this._animatedValueY = -this.props.draggableRange.bottom
+    const {top, bottom} = this.props.draggableRange
 
+    this._animatedValueY = -bottom
     this._translateYAnimation = new Animated.Value(this._animatedValueY)
-    this._flick = new FlickAnimation(this._translateYAnimation)
+    this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
@@ -206,7 +208,7 @@ class SlidingUpPanel extends React.Component {
 
     const backdropOpacity = this._translateYAnimation.interpolate({
       inputRange: [-top, -bottom],
-      outputRange: [0.75, bottom / visibleHeight],
+      outputRange: [0.75, 0],
       extrapolate: 'clamp'
     })
 
@@ -225,6 +227,7 @@ class SlidingUpPanel extends React.Component {
     }
 
     const {top, bottom} = this.props.draggableRange
+    const height = this.props.height != null ? this.props.height : top - bottom
 
     const translateY = this._translateYAnimation.interpolate({
       inputRange: [-top, -bottom],
@@ -236,8 +239,9 @@ class SlidingUpPanel extends React.Component {
 
     const animatedContainerStyles = [
       styles.animatedContainer,
+      this.props.contentStyle,
       transform,
-      this.props.contentStyle
+      {height, top, bottom}
     ]
 
     return (
