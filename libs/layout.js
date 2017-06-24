@@ -1,6 +1,9 @@
-import {Platform, StatusBar, Dimensions} from 'react-native'
+var {Dimensions} = require('react-native')
 
-const statusBarHeight = Platform.OS === 'ios' ? 0 : StatusBar.currentHeight
-const {height: deviceHeight} = Dimensions.get('window')
+var layout = {
+  get visibleHeight() {
+    return Dimensions.get('window').height
+  }
+}
 
-export const visibleHeight = deviceHeight - statusBarHeight
+module.exports = layout
