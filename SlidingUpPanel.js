@@ -86,6 +86,11 @@ class SlidingUpPanel extends React.Component {
     if (nextProps.visible && !this.props.visible) {
       this.transitionTo(-this.props.draggableRange.top)
     }
+    
+    if(nextProps.draggableRange.top != this.props.draggableRange.top || nextProps.draggableRange.bottom != this.props.draggableRange.bottom) {
+      const {top, bottom} = nextProps.draggableRange
+      this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
+    }
   }
 
   componentDidUpdate() {
