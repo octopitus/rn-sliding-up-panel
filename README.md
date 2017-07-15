@@ -65,7 +65,7 @@ class MyComponent extends React.Component {
 |height|number|Control the height of panel. Default to height of window.
 |onDragStart|Function|Called when panel is about to start dragging.
 |onDrag|Function|Called when panel is dragging. Fires at most once per frame.
-|onDragEnd|Function|Called when you release your fingers.
+|onDragEnd|Function|Called when you release your fingers. Return `true` to cancel the momentum event (use this to use `transitionTo` inside the onDragEnd function).
 |showBackdrop|boolean|Set to `false` to hide the backdrop behide panel. Default `true`.
 |allowDragging|boolean|Set to `false` to disable dragging. Touch outside panel or press back button (Android) to hide. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your fingers. Default `true`.
