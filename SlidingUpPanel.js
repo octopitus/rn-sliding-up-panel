@@ -75,7 +75,9 @@ class SlidingUpPanel extends React.Component {
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
+      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => false
     })
 
     this._translateYAnimation.addListener(this._onDrag)
