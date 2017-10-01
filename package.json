@@ -27,7 +27,9 @@
     "url": "https://github.com/octopitus/rn-sliding-up-panel/issues"
   },
   "homepage": "https://github.com/octopitus/rn-sliding-up-panel#readme",
-  "dependencies": {},
+  "dependencies": {
+    "prop-types": "^15.6.0"
+  },
   "devDependencies": {
     "babel-core": "^6.18.2",
     "babel-eslint": "^7.1.0",

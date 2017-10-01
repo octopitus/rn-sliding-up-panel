@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import {
   View,
   TouchableWithoutFeedback,
@@ -15,19 +16,19 @@ const deprecated = (condition, message) => condition && console.warn(message)
 
 class SlidingUpPanel extends React.Component {
   static propTypes = {
-    visible: React.PropTypes.bool.isRequired,
-    draggableRange: React.PropTypes.shape({
-      top: React.PropTypes.number.isRequired,
-      bottom: React.PropTypes.number.isRequired
+    visible: PropTypes.bool.isRequired,
+    draggableRange: PropTypes.shape({
+      top: PropTypes.number.isRequired,
+      bottom: PropTypes.number.isRequired
     }),
-    height: React.PropTypes.number,
-    onDrag: React.PropTypes.func,
-    onDragStart: React.PropTypes.func,
-    onDragEnd: React.PropTypes.func,
-    onRequestClose: React.PropTypes.func,
-    allowMomentum: React.PropTypes.bool,
-    allowDragging: React.PropTypes.bool,
-    showBackdrop: React.PropTypes.bool
+    height: PropTypes.number,
+    onDrag: PropTypes.func,
+    onDragStart: PropTypes.func,
+    onDragEnd: PropTypes.func,
+    onRequestClose: PropTypes.func,
+    allowMomentum: PropTypes.bool,
+    allowDragging: PropTypes.bool,
+    showBackdrop: PropTypes.bool
   }
 
   static defaultProps = {
