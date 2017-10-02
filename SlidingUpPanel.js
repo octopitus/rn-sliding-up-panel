@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import {
   View,
   TouchableWithoutFeedback,
@@ -14,22 +15,21 @@ import styles from './libs/styles'
 const deprecated = (condition, message) => condition && console.warn(message)
 
 class SlidingUpPanel extends React.Component {
-
   static propTypes = {
-    visible: React.PropTypes.bool.isRequired,
-    draggableRange: React.PropTypes.shape({
-      top: React.PropTypes.number.isRequired,
-      bottom: React.PropTypes.number.isRequired
+    visible: PropTypes.bool.isRequired,
+    draggableRange: PropTypes.shape({
+      top: PropTypes.number.isRequired,
+      bottom: PropTypes.number.isRequired
     }),
-    height: React.PropTypes.number,
-    onDrag: React.PropTypes.func,
-    onDragStart: React.PropTypes.func,
-    onDragEnd: React.PropTypes.func,
-    onRequestClose: React.PropTypes.func,
-    allowMomentum: React.PropTypes.bool,
-    allowDragging: React.PropTypes.bool,
-    showBackdrop: React.PropTypes.bool
-  };
+    height: PropTypes.number,
+    onDrag: PropTypes.func,
+    onDragStart: PropTypes.func,
+    onDragEnd: PropTypes.func,
+    onRequestClose: PropTypes.func,
+    allowMomentum: PropTypes.bool,
+    allowDragging: PropTypes.bool,
+    showBackdrop: PropTypes.bool
+  }
 
   static defaultProps = {
     visible: false,
@@ -42,7 +42,7 @@ class SlidingUpPanel extends React.Component {
     allowMomentum: true,
     allowDragging: true,
     showBackdrop: true
-  };
+  }
 
   constructor(props) {
     super(props)
@@ -60,7 +60,7 @@ class SlidingUpPanel extends React.Component {
       deprecated(
         this.props.contentStyle,
         'SlidingUpPanel#contentStyle is deprecated. ' +
-        'You should wrap your content inside a View.'
+          'You should wrap your content inside a View.'
       )
     }
 
@@ -76,7 +76,9 @@ class SlidingUpPanel extends React.Component {
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
+      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => false
     })
 
     this._translateYAnimation.addListener(this._onDrag)
@@ -86,8 +88,11 @@ class SlidingUpPanel extends React.Component {
     if (nextProps.visible && !this.props.visible) {
       this.transitionTo(-this.props.draggableRange.top)
     }
-    
-    if(nextProps.draggableRange.top != this.props.draggableRange.top || nextProps.draggableRange.bottom != this.props.draggableRange.bottom) {
+
+    if (
+      nextProps.draggableRange.top !== this.props.draggableRange.top ||
+      nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
+    ) {
       const {top, bottom} = nextProps.draggableRange
       this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
     }
@@ -103,8 +108,7 @@ class SlidingUpPanel extends React.Component {
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
     return (
-      this.props.allowDragging &&
-      this._isInsideDraggableRange(this._animatedValueY)
+      this.props.allowDragging && this._isInsideDraggableRange(this._animatedValueY)
     )
   }
 
@@ -183,14 +187,11 @@ class SlidingUpPanel extends React.Component {
     const animationConfig = {
       toValue: -Math.abs(value),
       duration: 260,
-      // eslint-disable-next-line no-undefined
+      // eslint-disable-next-line no-undefined, max-len
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
 
-    Animated.timing(
-      this._translateYAnimation,
-      animationConfig
-    ).start(onAnimationEnd)
+    Animated.timing(this._translateYAnimation, animationConfig).start(onAnimationEnd)
   }
 
   _requestClose() {
@@ -199,9 +200,8 @@ class SlidingUpPanel extends React.Component {
       return this.props.onRequestClose()
     }
 
-    return this.transitionTo(
-      -this.props.draggableRange.bottom,
-      () => this.props.onRequestClose()
+    return this.transitionTo(-this.props.draggableRange.bottom, () =>
+      this.props.onRequestClose()
     )
   }
 
@@ -253,7 +253,9 @@ class SlidingUpPanel extends React.Component {
     return (
       <View style={styles.container} pointerEvents='box-none'>
         {this._renderBackdrop()}
-        <Animated.View {...this._panResponder.panHandlers} style={animatedContainerStyles}>
+        <Animated.View
+          {...this._panResponder.panHandlers}
+          style={animatedContainerStyles}>
           {this.props.children}
         </Animated.View>
       </View>
