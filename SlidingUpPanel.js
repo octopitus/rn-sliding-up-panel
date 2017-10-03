@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import {
   View,
   TouchableWithoutFeedback,
@@ -7,6 +6,7 @@ import {
   PanResponder,
   Platform
 } from 'react-native'
+import PropTypes from 'prop-types';
 
 import FlickAnimation from './libs/FlickAnimation'
 import {visibleHeight} from './libs/layout'
@@ -15,6 +15,7 @@ import styles from './libs/styles'
 const deprecated = (condition, message) => condition && console.warn(message)
 
 class SlidingUpPanel extends React.Component {
+
   static propTypes = {
     visible: PropTypes.bool.isRequired,
     draggableRange: PropTypes.shape({
@@ -28,8 +29,11 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
-    showBackdrop: PropTypes.bool
-  }
+    showBackdrop: PropTypes.bool,
+    backdropColor: PropTypes.string,
+    translateYInit: PropTypes.func,
+    backdropOpacity: PropTypes.number
+  };
 
   static defaultProps = {
     visible: false,
@@ -41,11 +45,18 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: () => {},
     allowMomentum: true,
     allowDragging: true,
-    showBackdrop: true
-  }
+    showBackdrop: true,
+    backdropColor:"black",
+    translateYInit:()=>{},
+    backdropOpacity: 0.75
+  };
 
   constructor(props) {
     super(props)
+
+    this.state={
+      height:visibleHeight
+    }
 
     this._onDrag = this._onDrag.bind(this)
     this._requestClose = this._requestClose.bind(this)
@@ -60,7 +71,7 @@ class SlidingUpPanel extends React.Component {
       deprecated(
         this.props.contentStyle,
         'SlidingUpPanel#contentStyle is deprecated. ' +
-          'You should wrap your content inside a View.'
+        'You should wrap your content inside a View.'
       )
     }
 
@@ -68,6 +79,7 @@ class SlidingUpPanel extends React.Component {
 
     this._animatedValueY = -bottom
     this._translateYAnimation = new Animated.Value(this._animatedValueY)
+    this.props.translateYInit(this._translateYAnimation)
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
     this._panResponder = PanResponder.create({
@@ -76,9 +88,7 @@ class SlidingUpPanel extends React.Component {
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-      onPanResponderTerminationRequest: () => false,
-      onShouldBlockNativeResponder: () => false
+      onPanResponderTerminate: this._onPanResponderTerminate.bind(this)
     })
 
     this._translateYAnimation.addListener(this._onDrag)
@@ -89,12 +99,9 @@ class SlidingUpPanel extends React.Component {
       this.transitionTo(-this.props.draggableRange.top)
     }
 
-    if (
-      nextProps.draggableRange.top !== this.props.draggableRange.top ||
-      nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
-    ) {
-      const {top, bottom} = nextProps.draggableRange
-      this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
+    if(nextProps.draggableRange.top != this.props.draggableRange.top || nextProps.draggableRange.bottom != this.props.draggableRange.bottom) {
+      // const {top, bottom} = nextProps.draggableRange
+      // this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
     }
   }
 
@@ -108,7 +115,8 @@ class SlidingUpPanel extends React.Component {
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
     return (
-      this.props.allowDragging && this._isInsideDraggableRange(this._animatedValueY)
+      this.props.allowDragging &&
+      this._isInsideDraggableRange(this._animatedValueY)
     )
   }
 
@@ -187,11 +195,14 @@ class SlidingUpPanel extends React.Component {
     const animationConfig = {
       toValue: -Math.abs(value),
       duration: 260,
-      // eslint-disable-next-line no-undefined, max-len
+      // eslint-disable-next-line no-undefined
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
 
-    Animated.timing(this._translateYAnimation, animationConfig).start(onAnimationEnd)
+    Animated.timing(
+      this._translateYAnimation,
+      animationConfig
+    ).start(onAnimationEnd)
   }
 
   _requestClose() {
@@ -200,8 +211,9 @@ class SlidingUpPanel extends React.Component {
       return this.props.onRequestClose()
     }
 
-    return this.transitionTo(-this.props.draggableRange.bottom, () =>
-      this.props.onRequestClose()
+    return this.transitionTo(
+      -this.props.draggableRange.bottom,
+      () => this.props.onRequestClose()
     )
   }
 
@@ -214,7 +226,7 @@ class SlidingUpPanel extends React.Component {
 
     const backdropOpacity = this._translateYAnimation.interpolate({
       inputRange: [-top, -bottom],
-      outputRange: [0.75, 0],
+      outputRange: [this.props.backdropOpacity, 0],
       extrapolate: 'clamp'
     })
 
@@ -222,9 +234,14 @@ class SlidingUpPanel extends React.Component {
       <TouchableWithoutFeedback
         onPressIn={() => this._flick.stop()}
         onPress={() => this._requestClose()}>
-        <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
+        <Animated.View pointerEvents={this.props.allowDragging?"none":"auto"} style={[styles.backdrop, {opacity: backdropOpacity, backgroundColor:this.props.backdropColor}]} />
       </TouchableWithoutFeedback>
     )
+  }
+
+  layoutUpdated=(event) => {
+    var {x, y, width, height} = event.nativeEvent.layout;
+    this.setState({height});
   }
 
   render() {
@@ -247,15 +264,13 @@ class SlidingUpPanel extends React.Component {
       styles.animatedContainer,
       this.props.contentStyle,
       transform,
-      {height, top: visibleHeight, bottom: 0}
+      {height, top: this.state.height, bottom: 0}
     ]
 
     return (
-      <View style={styles.container} pointerEvents='box-none'>
+      <View style={styles.container} pointerEvents='box-none' onLayout={this.layoutUpdated}>
         {this._renderBackdrop()}
-        <Animated.View
-          {...this._panResponder.panHandlers}
-          style={animatedContainerStyles}>
+        <Animated.View {...this._panResponder.panHandlers} style={animatedContainerStyles}>
           {this.props.children}
         </Animated.View>
       </View>
