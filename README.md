@@ -17,9 +17,9 @@ or if you are using [yarn](http://yarnpkg.com)
 
 ```js
 import React from 'react';
-import {View, Button, Text, TouchableOpacity} from 'react-native'
+import {View, Button, Text, TouchableOpacity} from 'react-native';
 
-import SlidingUpPanel from 'rn-sliding-up-panel'
+import SlidingUpPanel from 'rn-sliding-up-panel';
 
 const styles = {
   container: {
@@ -38,6 +38,9 @@ class MyComponent extends React.Component {
   render() {
     return (
       <View style={styles.container}>
+        <TouchableOpacity onPress={() => this.setState({visible: true})}>
+          <Text>Show panel</Text>
+        </TouchableOpacity>
         <SlidingUpPanel
           ref={c => this._panel = c}
           visible={this.state.visible}
@@ -47,9 +50,6 @@ class MyComponent extends React.Component {
             <Button title='hide' onPress={() => this._panel.transitionTo(0)} />
           </View>
         </SlidingUpPanel>
-        <TouchableOpacity onPress={() => this.setState({visible: true})}>
-          <Text>Show panel</Text>
-        </TouchableOpacity>
       </View>
     )
   }
