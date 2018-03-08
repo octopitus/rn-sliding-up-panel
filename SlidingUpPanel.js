@@ -42,7 +42,8 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: () => {},
     allowMomentum: true,
     allowDragging: true,
-    showBackdrop: true
+    showBackdrop: true,
+    animationDuration: 260
   }
 
   constructor(props) {
