@@ -28,7 +28,8 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
-    showBackdrop: PropTypes.bool
+    showBackdrop: PropTypes.bool,
+    animationDuration: PropTypes.number
   }
 
   static defaultProps = {
@@ -186,7 +187,7 @@ class SlidingUpPanel extends React.Component {
   transitionTo(value, onAnimationEnd = () => {}) {
     const animationConfig = {
       toValue: -Math.abs(value),
-      duration: 260,
+      duration: this.props.animationDuration,
       // eslint-disable-next-line no-undefined, max-len
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
