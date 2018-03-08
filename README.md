@@ -69,6 +69,7 @@ class MyComponent extends React.Component {
 |showBackdrop|boolean|Set to `false` to hide the backdrop behide panel. Default `true`.
 |allowDragging|boolean|Set to `false` to disable dragging. Touch outside panel or press back button (Android) to hide. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your fingers. Default `true`.
+|animationDuration|number| Length of moving animation(milliseconds) Default `260`.
 |~~contentStyle~~|~~ViewStyle~~|~~The style of content inside panel.~~ Deprecated. You should wrap your content inside a View.
 
 # Methods
