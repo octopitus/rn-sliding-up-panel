@@ -82,6 +82,10 @@ class SlidingUpPanel extends React.Component {
     })
 
     this._translateYAnimation.addListener(this._onDrag)
+
+    if (this.props.visible) {
+      this.transitionTo(-this.props.draggableRange.top, () => {}, 0);  
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -183,10 +187,10 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  transitionTo(value, onAnimationEnd = () => {}) {
+  transitionTo(value, onAnimationEnd = () => {}, duration = 260) {
     const animationConfig = {
       toValue: -Math.abs(value),
-      duration: 260,
+      duration,
       // eslint-disable-next-line no-undefined, max-len
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
