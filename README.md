@@ -74,6 +74,11 @@ class MyComponent extends React.Component {
 
 # Methods
 
-## transitionTo: (value: number, onComplete: Function)
+## transitionTo: (value: number | TimingAnimationConfig)
 
-Programmatically move panel to a given value.
+Programmatically move panel to a given value. Accepts a number or an object that may have the following options:
+
+- **toValue**: The value that the panel will move to.
+- **duration**: Length of animation (milliseconds). Default is 260.
+- **easing**: Easing function to define curve. Default is `Easing.inOut(Easing.ease)`.
+- **onAnimationEnd**: A callback that will be called when the animation is done.

@@ -51,6 +51,7 @@ class SlidingUpPanel extends React.Component {
     this._requestClose = this._requestClose.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
+    this._triggerAnimation = this._triggerAnimation.bind(this)
 
     this.transitionTo = this.transitionTo.bind(this)
   }
@@ -183,10 +184,21 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  transitionTo(value, onAnimationEnd = () => {}) {
+  transitionTo(mayBeValueOrOptions) {
+    if (typeof mayBeValueOrOptions === 'object') {
+      return this._triggerAnimation(mayBeValueOrOptions)
+    }
+
+    return this._triggerAnimation({toValue: mayBeValueOrOptions})
+  }
+
+  _triggerAnimation(options = {}) {
+    const {toValue, easing, onAnimationEnd = () => {}, duration = 260} = options
+
     const animationConfig = {
-      toValue: -Math.abs(value),
-      duration: 260,
+      toValue: -Math.abs(toValue),
+      duration,
+      easing,
       // eslint-disable-next-line no-undefined, max-len
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
