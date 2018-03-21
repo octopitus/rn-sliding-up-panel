@@ -27,10 +27,12 @@
     "url": "https://github.com/octopitus/rn-sliding-up-panel/issues"
   },
   "homepage": "https://github.com/octopitus/rn-sliding-up-panel#readme",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
   "dependencies": {
-    "prop-types": "^15.6.0",
-    "react": "^16.2.0",
-    "react-native": "^0.54.2"
+    "prop-types": "^15.6.0"
   },
   "devDependencies": {
     "babel-core": "^6.18.2",
