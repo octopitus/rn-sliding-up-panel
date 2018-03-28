@@ -28,7 +28,9 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
-    showBackdrop: PropTypes.bool
+    showBackdrop: PropTypes.bool,
+    contentStyle: PropTypes.any,
+    children: PropTypes.element
   }
 
   static defaultProps = {
@@ -72,6 +74,7 @@ class SlidingUpPanel extends React.Component {
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
     this._panResponder = PanResponder.create({
+      // prettier-ignore
       onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
@@ -109,7 +112,8 @@ class SlidingUpPanel extends React.Component {
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
     return (
-      this.props.allowDragging && this._isInsideDraggableRange(this._animatedValueY)
+      this.props.allowDragging &&
+      this._isInsideDraggableRange(this._animatedValueY)
     )
   }
 
@@ -196,14 +200,18 @@ class SlidingUpPanel extends React.Component {
     const {toValue, easing, onAnimationEnd = () => {}, duration = 260} = options
 
     const animationConfig = {
-      toValue: -Math.abs(toValue),
       duration,
       easing,
-      // eslint-disable-next-line no-undefined, max-len
+      toValue: -Math.abs(toValue),
       delay: Platform.OS === 'android' ? 166.67 : undefined // to make it looks smooth on android
     }
 
-    Animated.timing(this._translateYAnimation, animationConfig).start(onAnimationEnd)
+    const animation = Animated.timing(
+      this._translateYAnimation,
+      animationConfig
+    )
+
+    animation.start(onAnimationEnd)
   }
 
   _requestClose() {
@@ -263,7 +271,7 @@ class SlidingUpPanel extends React.Component {
     ]
 
     return (
-      <View style={styles.container} pointerEvents='box-none'>
+      <View style={styles.container} pointerEvents="box-none">
         {this._renderBackdrop()}
         <Animated.View
           {...this._panResponder.panHandlers}
