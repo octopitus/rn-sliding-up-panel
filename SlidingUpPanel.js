@@ -18,8 +18,8 @@ class SlidingUpPanel extends React.Component {
   static propTypes = {
     visible: PropTypes.bool.isRequired,
     draggableRange: PropTypes.shape({
-      top: PropTypes.number.isRequired,
-      bottom: PropTypes.number.isRequired
+      top: PropTypes.number,
+      bottom: PropTypes.number
     }),
     height: PropTypes.number,
     onDrag: PropTypes.func,
@@ -30,7 +30,7 @@ class SlidingUpPanel extends React.Component {
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
     contentStyle: PropTypes.any,
-    children: PropTypes.element
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
   }
 
   static defaultProps = {
@@ -247,6 +247,23 @@ class SlidingUpPanel extends React.Component {
     )
   }
 
+  _renderContent() {
+    if (typeof this.props.children === 'function') {
+      return this.props.children(this._panResponder.panHandlers)
+    }
+
+    const contentContainerStyles = [
+      styles.contentContainer,
+      this.props.contentStyle
+    ]
+
+    return (
+      <View style={contentContainerStyles} {...this._panResponder.panHandlers}>
+        {this.props.children}
+      </View>
+    )
+  }
+
   render() {
     if (!this.props.visible) {
       return null
@@ -265,7 +282,6 @@ class SlidingUpPanel extends React.Component {
 
     const animatedContainerStyles = [
       styles.animatedContainer,
-      this.props.contentStyle,
       transform,
       {height, top: visibleHeight, bottom: 0}
     ]
@@ -273,10 +289,8 @@ class SlidingUpPanel extends React.Component {
     return (
       <View style={styles.container} pointerEvents="box-none">
         {this._renderBackdrop()}
-        <Animated.View
-          {...this._panResponder.panHandlers}
-          style={animatedContainerStyles}>
-          {this.props.children}
+        <Animated.View style={animatedContainerStyles}>
+          {this._renderContent()}
         </Animated.View>
       </View>
     )

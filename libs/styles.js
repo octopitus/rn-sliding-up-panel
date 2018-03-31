@@ -22,5 +22,9 @@ export default StyleSheet.create({
     left: 0,
     right: 0,
     alignSelf: 'stretch'
+  },
+  contentContainer: {
+    flex: 1,
+    alignSelf: 'stretch'
   }
 })
