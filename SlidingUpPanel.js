@@ -15,6 +15,12 @@ import styles from './libs/styles'
 
 const deprecated = (condition, message) => condition && console.warn(message)
 
+const MINIMUM_VELOCITY_THRESHOLD = 0.1
+
+const MINIMUM_DISTANCE_THRESHOLD = 0.24
+
+const DEFAULT_SLIDING_DURATION = 240
+
 class SlidingUpPanel extends React.Component {
   static propTypes = {
     visible: PropTypes.bool.isRequired,
@@ -75,8 +81,7 @@ class SlidingUpPanel extends React.Component {
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
     this._panResponder = PanResponder.create({
-      // prettier-ignore
-      onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this),
+      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
@@ -112,7 +117,7 @@ class SlidingUpPanel extends React.Component {
     return (
       this.props.allowDragging &&
       this._isInsideDraggableRange() &&
-      Math.abs(gestureState.dy) > 1
+      Math.abs(gestureState.dy) > MINIMUM_DISTANCE_THRESHOLD
     )
   }
 
@@ -145,7 +150,7 @@ class SlidingUpPanel extends React.Component {
       return
     }
 
-    if (Math.abs(gestureState.vy) > 0.1) {
+    if (Math.abs(gestureState.vy) > MINIMUM_VELOCITY_THRESHOLD) {
       this._flick.start({
         velocity: gestureState.vy,
         fromValue: this._animatedValueY
@@ -186,7 +191,12 @@ class SlidingUpPanel extends React.Component {
   }
 
   _triggerAnimation(options = {}) {
-    const {toValue, easing, onAnimationEnd = () => {}, duration = 260} = options
+    const {
+      toValue,
+      easing,
+      onAnimationEnd = () => {},
+      duration = DEFAULT_SLIDING_DURATION
+    } = options
 
     const animationConfig = {
       duration,
