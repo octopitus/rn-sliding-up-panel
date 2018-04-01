@@ -1,7 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {
-  View,
   TouchableWithoutFeedback,
   Animated,
   PanResponder,
@@ -51,6 +50,7 @@ class SlidingUpPanel extends React.Component {
 
     this._onDrag = this._onDrag.bind(this)
     this._requestClose = this._requestClose.bind(this)
+    this._renderContent = this._renderContent.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
     this._triggerAnimation = this._triggerAnimation.bind(this)
@@ -240,6 +240,7 @@ class SlidingUpPanel extends React.Component {
 
     return (
       <TouchableWithoutFeedback
+        key="backdrop"
         onPressIn={() => this._flick.stop()}
         onPress={() => this._requestClose()}>
         <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
@@ -248,27 +249,6 @@ class SlidingUpPanel extends React.Component {
   }
 
   _renderContent() {
-    if (typeof this.props.children === 'function') {
-      return this.props.children(this._panResponder.panHandlers)
-    }
-
-    const contentContainerStyles = [
-      styles.contentContainer,
-      this.props.contentStyle
-    ]
-
-    return (
-      <View style={contentContainerStyles} {...this._panResponder.panHandlers}>
-        {this.props.children}
-      </View>
-    )
-  }
-
-  render() {
-    if (!this.props.visible) {
-      return null
-    }
-
     const {top, bottom} = this.props.draggableRange
     const height = this.props.height
 
@@ -286,14 +266,30 @@ class SlidingUpPanel extends React.Component {
       {height, top: visibleHeight, bottom: 0}
     ]
 
-    return (
-      <View style={styles.container} pointerEvents="box-none">
-        {this._renderBackdrop()}
-        <Animated.View style={animatedContainerStyles}>
-          {this._renderContent()}
+    if (typeof this.props.children === 'function') {
+      return (
+        <Animated.View key="content" style={animatedContainerStyles}>
+          {this.props.children(this._panResponder.panHandlers)}
         </Animated.View>
-      </View>
+      )
+    }
+
+    return (
+      <Animated.View
+        key="content"
+        style={animatedContainerStyles}
+        {...this._panResponder.panHandlers}>
+        {this.props.children}
+      </Animated.View>
     )
+  }
+
+  render() {
+    if (!this.props.visible) {
+      return null
+    }
+
+    return [this._renderBackdrop(), this._renderContent()]
   }
 }
 
