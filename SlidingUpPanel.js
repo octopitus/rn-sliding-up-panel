@@ -7,6 +7,8 @@ import {
   Platform
 } from 'react-native'
 
+import clamp from 'clamp'
+
 import FlickAnimation from './libs/FlickAnimation'
 import {visibleHeight} from './libs/layout'
 import styles from './libs/styles'
@@ -102,25 +104,15 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  componentDidUpdate() {
-    const {bottom} = this.props.draggableRange
-    if (this._animatedValueY !== -bottom && !this.props.visible) {
-      this._translateYAnimation.setValue(-bottom)
-    }
-  }
-
   // eslint-disable-next-line no-unused-vars
   _onStartShouldSetPanResponder(evt, gestureState) {
-    return (
-      this.props.allowDragging &&
-      this._isInsideDraggableRange(this._animatedValueY)
-    )
+    return this.props.allowDragging && this._isInsideDraggableRange()
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
     return (
       this.props.allowDragging &&
-      this._isInsideDraggableRange(this._animatedValueY) &&
+      this._isInsideDraggableRange() &&
       Math.abs(gestureState.dy) > 1
     )
   }
@@ -134,7 +126,7 @@ class SlidingUpPanel extends React.Component {
   }
 
   _onPanResponderMove(evt, gestureState) {
-    if (!this._isInsideDraggableRange(this._animatedValueY)) {
+    if (!this._isInsideDraggableRange()) {
       return
     }
 
@@ -143,7 +135,7 @@ class SlidingUpPanel extends React.Component {
 
   // Trigger when you release your finger
   _onPanResponderRelease(evt, gestureState) {
-    if (!this._isInsideDraggableRange(this._animatedValueY)) {
+    if (!this._isInsideDraggableRange()) {
       return
     }
 
@@ -169,23 +161,21 @@ class SlidingUpPanel extends React.Component {
     //
   }
 
-  _isInsideDraggableRange(value) {
-    return (
-      value >= -this.props.draggableRange.top &&
-      value <= -this.props.draggableRange.bottom
-    )
+  _isInsideDraggableRange() {
+    const {top, bottom} = this.props.draggableRange
+    return this._animatedValueY >= -top && this._animatedValueY <= -bottom
   }
 
   _onDrag({value}) {
-    if (this._isInsideDraggableRange(value)) {
-      this._animatedValueY = value
-      this.props.onDrag(value)
-    }
+    const {top, bottom} = this.props.draggableRange
 
-    if (value >= -this.props.draggableRange.bottom) {
+    if (value >= -bottom) {
       this.props.onRequestClose()
       return
     }
+
+    this._animatedValueY = clamp(value, -top, -bottom)
+    this.props.onDrag(-this._animatedValueY)
   }
 
   transitionTo(mayBeValueOrOptions) {
