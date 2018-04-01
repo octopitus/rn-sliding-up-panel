@@ -51,7 +51,6 @@ class SlidingUpPanel extends React.Component {
     super(props)
 
     this._onDrag = this._onDrag.bind(this)
-    this._requestClose = this._requestClose.bind(this)
     this._renderContent = this._renderContent.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
@@ -204,17 +203,6 @@ class SlidingUpPanel extends React.Component {
     animation.start(onAnimationEnd)
   }
 
-  _requestClose() {
-    const {bottom} = this.props.draggableRange
-    if (this._animatedValueY === -bottom) {
-      return this.props.onRequestClose()
-    }
-
-    return this.transitionTo(-this.props.draggableRange.bottom, () =>
-      this.props.onRequestClose()
-    )
-  }
-
   _renderBackdrop() {
     if (!this.props.showBackdrop) {
       return null
@@ -232,7 +220,7 @@ class SlidingUpPanel extends React.Component {
       <TouchableWithoutFeedback
         key="backdrop"
         onPressIn={() => this._flick.stop()}
-        onPress={() => this._requestClose()}>
+        onPress={() => this.props.onRequestClose()}>
         <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
       </TouchableWithoutFeedback>
     )
