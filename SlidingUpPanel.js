@@ -246,7 +246,10 @@ class SlidingUpPanel extends React.Component {
 
     if (typeof this.props.children === 'function') {
       return (
-        <Animated.View key="content" style={animatedContainerStyles}>
+        <Animated.View
+          key="content"
+          pointerEvents="box-none"
+          style={animatedContainerStyles}>
           {this.props.children(this._panResponder.panHandlers)}
         </Animated.View>
       )
@@ -255,6 +258,7 @@ class SlidingUpPanel extends React.Component {
     return (
       <Animated.View
         key="content"
+        pointerEvents="box-none"
         style={animatedContainerStyles}
         {...this._panResponder.panHandlers}>
         {this.props.children}
