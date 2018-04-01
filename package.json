@@ -28,8 +28,8 @@
   },
   "homepage": "https://github.com/octopitus/rn-sliding-up-panel#readme",
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=16.x",
+    "react-native": ">=0.47"
   },
   "dependencies": {
     "clamp": "^1.0.1",

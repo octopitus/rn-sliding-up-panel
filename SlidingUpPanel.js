@@ -1,11 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {
-  TouchableWithoutFeedback,
-  Animated,
-  PanResponder,
-  Platform
-} from 'react-native'
+import {Animated, PanResponder, Platform} from 'react-native'
 
 import clamp from 'clamp'
 
@@ -63,20 +58,23 @@ class SlidingUpPanel extends React.Component {
     this._triggerAnimation = this._triggerAnimation.bind(this)
 
     this.transitionTo = this.transitionTo.bind(this)
-  }
 
-  componentWillMount() {
+    this.state = {
+      visible: props.visible,
+      isAtBottom: !props.visible
+    }
+
     if (__DEV__) {
       deprecated(
-        this.props.contentStyle,
+        props.contentStyle,
         'SlidingUpPanel#contentStyle is deprecated. ' +
           'You should wrap your content inside a View.'
       )
     }
 
-    const {top, bottom} = this.props.draggableRange
+    const {top, bottom} = props.draggableRange
 
-    this._animatedValueY = this.props.visible ? -top : -bottom
+    this._animatedValueY = this.state.visible ? -top : -bottom
     this._translateYAnimation = new Animated.Value(this._animatedValueY)
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
@@ -96,7 +94,22 @@ class SlidingUpPanel extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.visible && !this.props.visible) {
-      this.transitionTo(-this.props.draggableRange.top)
+      return this.setState({visible: true, isAtBottom: false}, () => {
+        this.transitionTo(-this.props.draggableRange.top)
+      })
+    }
+
+    const {bottom} = this.props.draggableRange
+
+    if (
+      !nextProps.visible &&
+      this.props.visible &&
+      -this._animatedValueY > bottom
+    ) {
+      return this.transitionTo({
+        toValue: -bottom,
+        onAnimationEnd: () => this.setState({visible: false, isAtBottom: true})
+      })
     }
 
     if (
@@ -106,11 +119,6 @@ class SlidingUpPanel extends React.Component {
       const {top, bottom} = nextProps.draggableRange
       this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
     }
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  _onStartShouldSetPanResponder(evt, gestureState) {
-    return this.props.allowDragging && this._isInsideDraggableRange()
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
@@ -174,8 +182,16 @@ class SlidingUpPanel extends React.Component {
     const {top, bottom} = this.props.draggableRange
 
     if (value >= -bottom) {
+      if (!this.state.isAtBottom) {
+        this.setState({isAtBottom: true})
+      }
+
       this.props.onRequestClose()
       return
+    }
+
+    if (this.state.isAtBottom) {
+      this.setState({isAtBottom: false})
     }
 
     this._animatedValueY = clamp(value, -top, -bottom)
@@ -227,12 +243,13 @@ class SlidingUpPanel extends React.Component {
     })
 
     return (
-      <TouchableWithoutFeedback
+      <Animated.View
         key="backdrop"
-        onPressIn={() => this._flick.stop()}
-        onPress={() => this.props.onRequestClose()}>
-        <Animated.View style={[styles.backdrop, {opacity: backdropOpacity}]} />
-      </TouchableWithoutFeedback>
+        onTouchStart={() => this._flick.stop()}
+        onTouchEnd={() => this.props.onRequestClose()}
+        pointerEvents={this.state.isAtBottom ? 'none' : 'box-only'}
+        style={[styles.backdrop, {opacity: backdropOpacity}]}
+      />
     )
   }
 
@@ -277,7 +294,7 @@ class SlidingUpPanel extends React.Component {
   }
 
   render() {
-    if (!this.props.visible) {
+    if (!this.state.visible) {
       return null
     }
 
