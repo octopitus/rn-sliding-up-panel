@@ -192,7 +192,10 @@ class SlidingUpPanel extends React.Component {
 
     if (value >= -bottom) {
       this._isAtBottom = true
-      this._backdrop.setNativeProps({pointerEvents: 'none'})
+
+      if (this._backdrop != null) {
+        this._backdrop.setNativeProps({pointerEvents: 'none'})
+      }
 
       if (!this._requestCloseTriggered) {
         this.props.onRequestClose()
@@ -202,7 +205,10 @@ class SlidingUpPanel extends React.Component {
 
     if (this._isAtBottom) {
       this._isAtBottom = false
-      this._backdrop.setNativeProps({pointerEvents: 'box-only'})
+
+      if (this._backdrop != null) {
+        this._backdrop.setNativeProps({pointerEvents: 'box-only'})
+      }
     }
 
     this._animatedValueY = clamp(value, -top, -bottom)
