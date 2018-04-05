@@ -86,7 +86,5 @@ Programmatically move panel to a given value. Accepts a number or an object that
 
 # Changelogs
 ## 1.2.0
-- Handle back button press (Android).
-- Wrap the panel inside `Modal`. Now it will always stay on top of component hierarchy.
 - Accept function as children. Allow a part of content becomes drag handlers.
 - Fix issue can not interact with components underlies the panel.

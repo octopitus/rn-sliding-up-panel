@@ -78,14 +78,12 @@ class SlidingUpPanel extends React.Component {
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
     this._panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
       onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-      onPanResponderTerminationRequest: () => false,
-      onShouldBlockNativeResponder: () => false
+      onPanResponderTerminationRequest: () => false
     })
 
     this._backdrop = null
@@ -102,7 +100,6 @@ class SlidingUpPanel extends React.Component {
       this.setState({visible: true}, () => {
         this.transitionTo(-this.props.draggableRange.top)
       })
-
       return
     }
 
@@ -115,10 +112,11 @@ class SlidingUpPanel extends React.Component {
     ) {
       this._requestCloseTriggered = true
 
-      return this.transitionTo({
+      this.transitionTo({
         toValue: -bottom,
         onAnimationEnd: () => this.setState({visible: false})
       })
+      return
     }
 
     if (
