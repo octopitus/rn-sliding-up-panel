@@ -60,8 +60,7 @@ class SlidingUpPanel extends React.Component {
     this.transitionTo = this.transitionTo.bind(this)
 
     this.state = {
-      visible: props.visible,
-      isAtBottom: !props.visible
+      visible: props.visible
     }
 
     if (__DEV__) {
@@ -89,12 +88,15 @@ class SlidingUpPanel extends React.Component {
       onShouldBlockNativeResponder: () => false
     })
 
+    this._backdrop = null
+    this._isAtBottom = !props.visible
+
     this._translateYAnimation.addListener(this._onDrag)
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.visible && !this.props.visible) {
-      return this.setState({visible: true, isAtBottom: false}, () => {
+      return this.setState({visible: true}, () => {
         this.transitionTo(-this.props.draggableRange.top)
       })
     }
@@ -108,7 +110,7 @@ class SlidingUpPanel extends React.Component {
     ) {
       return this.transitionTo({
         toValue: -bottom,
-        onAnimationEnd: () => this.setState({visible: false, isAtBottom: true})
+        onAnimationEnd: () => this.setState({visible: false})
       })
     }
 
@@ -182,16 +184,24 @@ class SlidingUpPanel extends React.Component {
     const {top, bottom} = this.props.draggableRange
 
     if (value >= -bottom) {
-      if (!this.state.isAtBottom) {
-        this.setState({isAtBottom: true})
+      if (!this._isAtBottom) {
+        this._isAtBottom = true
+
+        if (this._backdrop != null) {
+          this._backdrop.setNativeProps({pointerEvents: 'none'})
+        }
       }
 
       this.props.onRequestClose()
       return
     }
 
-    if (this.state.isAtBottom) {
-      this.setState({isAtBottom: false})
+    if (this._isAtBottom) {
+      this._isAtBottom = false
+
+      if (this._backdrop != null) {
+        this._backdrop.setNativeProps({pointerEvents: 'box-only'})
+      }
     }
 
     this._animatedValueY = clamp(value, -top, -bottom)
@@ -245,9 +255,10 @@ class SlidingUpPanel extends React.Component {
     return (
       <Animated.View
         key="backdrop"
+        pointerEvents="box-only"
+        ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
         onTouchEnd={() => this.props.onRequestClose()}
-        pointerEvents={this.state.isAtBottom ? 'none' : 'box-only'}
         style={[styles.backdrop, {opacity: backdropOpacity}]}
       />
     )
