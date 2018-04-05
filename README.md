@@ -2,8 +2,7 @@
 
 React Native draggable sliding up panel purly implemented in Javascript. Inspired by [AndroidSlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel). Works nicely on both iOS and Android.
 
-<img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/sliding_panel_android.gif" height="460" />
-<img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/bottom_sheet_demo.gif" height="460" />
+<img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/sliding_panel_android.gif" height="460" style="display: inline-block" /><img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/bottom_sheet_demo.gif" height="460" style="display: inline-block" />
 
 # Installation
 
@@ -13,11 +12,11 @@ or if you are using [yarn](http://yarnpkg.com)
 
     yarn add rn-sliding-up-panel
 
-# Usage
+# Example
 
-```js
+```jsx
 import React from 'react';
-import {View, Button, Text, TouchableOpacity} from 'react-native';
+import {View, Button, Text} from 'react-native';
 
 import SlidingUpPanel from 'rn-sliding-up-panel';
 
@@ -38,16 +37,13 @@ class MyComponent extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => this.setState({visible: true})}>
-          <Text>Show panel</Text>
-        </TouchableOpacity>
+        <Button title='Show panel' onPress={() => this.setState({visible: true})} />
         <SlidingUpPanel
-          ref={c => this._panel = c}
           visible={this.state.visible}
           onRequestClose={() => this.setState({visible: false})}>
           <View style={styles.container}>
             <Text>Here is the content inside panel</Text>
-            <Button title='hide' onPress={() => this._panel.transitionTo(0)} />
+            <Button title='Hide' onPress={() => this.setState({visible: false})} />
           </View>
         </SlidingUpPanel>
       </View>
@@ -58,19 +54,23 @@ class MyComponent extends React.Component {
 
 # Props
 
-|Property|Type|Description|
-|---|---|---|
-|visible|boolean|Controls how panel should visible or not.
-|draggableRange|{top: number, bottom: number}|You can not drag panel out of this range. `top` default to visible height of device, `bottom` default to 0.
-|height|number|Control the height of panel. Default to height of window.
-|onRequestClose|Function|Called when you slide down to hide the panel.
-|onDragStart|Function|Called when panel is about to start dragging.
-|onDrag|Function|Called when panel is dragging. Fires at most once per frame.
-|onDragEnd|Function|Called when you release your fingers. Return `true` to cancel the momentum event (use this to use `transitionTo` inside the onDragEnd function).
-|showBackdrop|boolean|Set to `false` to hide the backdrop behide panel. Default `true`.
-|allowDragging|boolean|Set to `false` to disable dragging. Touch outside panel or press back button (Android) to hide. Default `true`.
-|allowMomentum|boolean|If `false`, panel will not continue to move when you release your fingers. Default `true`.
-|~~contentStyle~~|~~ViewStyle~~|~~The style of content inside panel.~~ Deprecated. You should wrap your content inside a View.
+|Property|Type|Description
+|---|---|---
+|visible|boolean|Deterimines whether the panel is visible.
+|draggableRange|{top: number, bottom: number}|Boundary limits for draggable area. `top` default to visible height of device, `bottom` default to 0.
+|height|number|Height of panel. Default to visible height of device.
+|onRequestClose|Function|Called when you touch the backdrop or slide down to hide the panel.
+|onDragStart|(position: number) => void|Called when the panel is about to start dragging.
+|onDrag|(position: number) => void|Called when the panel is dragging. Fires at most once per frame.
+|onDragEnd|(position: number) => void|Called when you release your finger.
+|showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
+|allowDragging|boolean|Default `true`. Setting this to `false` to disable dragging. Touching the backdrop triggers `onRequestClose` normally.
+|allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
+|~~contentStyle~~|~~ViewStyle~~|~~The style of content inside panel.~~ **Deprecated**. You should wrap your content inside a View.
+|children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want a part of your content that allows the user to slide the panel with.
+
+**Notes**:
+- All properties are optional.
 
 # Methods
 
@@ -82,3 +82,11 @@ Programmatically move panel to a given value. Accepts a number or an object that
 - **duration**: Length of animation (milliseconds). Default is 260.
 - **easing**: Easing function to define curve. Default is `Easing.inOut(Easing.ease)`.
 - **onAnimationEnd**: A callback that will be called when the animation is done.
+
+# Advanced Usage
+> In progress.
+
+# Changelogs
+## 1.2.0
+- Accept function as children. Allow a part of content becomes drag handlers.
+- Fix issue can not interact with components underlies the panel.
