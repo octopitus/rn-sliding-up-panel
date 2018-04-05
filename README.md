@@ -38,7 +38,9 @@ class MyComponent extends React.Component {
     return (
       <View style={styles.container}>
         <Button title='Show panel' onPress={() => this.setState({visible: true})} />
-        <SlidingUpPanel visible={this.state.visible}>
+        <SlidingUpPanel
+          visible={this.state.visible}
+          onRequestClose={() => this.setState({visible: false})}>
           <View style={styles.container}>
             <Text>Here is the content inside panel</Text>
             <Button title='Hide' onPress={() => this.setState({visible: false})} />
