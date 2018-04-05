@@ -90,15 +90,20 @@ class SlidingUpPanel extends React.Component {
 
     this._backdrop = null
     this._isAtBottom = !props.visible
+    this._requestCloseTriggered = false
 
     this._translateYAnimation.addListener(this._onDrag)
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.visible && !this.props.visible) {
-      return this.setState({visible: true}, () => {
+      this._requestCloseTriggered = false
+
+      this.setState({visible: true}, () => {
         this.transitionTo(-this.props.draggableRange.top)
       })
+
+      return
     }
 
     const {bottom} = this.props.draggableRange
@@ -108,6 +113,8 @@ class SlidingUpPanel extends React.Component {
       this.props.visible &&
       -this._animatedValueY > bottom
     ) {
+      this._requestCloseTriggered = true
+
       return this.transitionTo({
         toValue: -bottom,
         onAnimationEnd: () => this.setState({visible: false})
@@ -184,24 +191,18 @@ class SlidingUpPanel extends React.Component {
     const {top, bottom} = this.props.draggableRange
 
     if (value >= -bottom) {
-      if (!this._isAtBottom) {
-        this._isAtBottom = true
+      this._isAtBottom = true
+      this._backdrop.setNativeProps({pointerEvents: 'none'})
 
-        if (this._backdrop != null) {
-          this._backdrop.setNativeProps({pointerEvents: 'none'})
-        }
+      if (!this._requestCloseTriggered) {
+        this.props.onRequestClose()
       }
-
-      this.props.onRequestClose()
       return
     }
 
     if (this._isAtBottom) {
       this._isAtBottom = false
-
-      if (this._backdrop != null) {
-        this._backdrop.setNativeProps({pointerEvents: 'box-only'})
-      }
+      this._backdrop.setNativeProps({pointerEvents: 'box-only'})
     }
 
     this._animatedValueY = clamp(value, -top, -bottom)
