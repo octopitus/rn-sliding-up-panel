@@ -284,7 +284,7 @@ class SlidingUpPanel extends React.Component {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      {height, top: visibleHeight, bottom: 0}
+      {height, top: height, bottom: 0}
     ]
 
     if (typeof this.props.children === 'function') {
