@@ -73,7 +73,7 @@ class SlidingUpPanel extends React.Component {
 
     const {top, bottom} = props.draggableRange
 
-    this._animatedValueY = this.state.visible ? -top : -bottom
+    this._animatedValueY = this.state.visible ? this.props.startCollapsed ? -bottom : -top : -bottom
     this._translateYAnimation = new Animated.Value(this._animatedValueY)
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
