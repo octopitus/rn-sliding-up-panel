@@ -51,6 +51,9 @@ class MyComponent extends React.Component {
   }
 }
 ```
+**More:**
+- [ScrollView insides the panel](demo/ScrollViewInsidePanel.js)
+- [Bottom sheet](demo/BottomSheet.js)
 
 # Props
 
@@ -84,10 +87,10 @@ Programmatically move panel to a given value. Accepts a number or an object that
 - **easing**: Easing function to define curve. Default is `Easing.inOut(Easing.ease)`.
 - **onAnimationEnd**: A callback that will be called when the animation is done.
 
-# Advanced Usage
-> In progress.
-
 # Changelogs
+## 1.2.1
+- Add `startCollapsed`: Initially start the panel at bottom of draggable range.
+
 ## 1.2.0
 - Accept function as children. Allow a part of content becomes drag handlers.
 - Fix issue can not interact with components underlies the panel.
