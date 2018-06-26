@@ -1,10 +1,5 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React from 'react'
+
 import {
   AppRegistry,
   Text,
@@ -67,8 +62,9 @@ class BottomSheet extends React.Component {
 
   _renderFavoriteIcon() {
     const {top, bottom} = this.props.draggableRange
+
     const draggedValue = this._draggedValue.interpolate({
-      inputRange: [-(top + bottom) / 2, -bottom],
+      inputRange: [bottom, top],
       outputRange: [0, 1],
       extrapolate: 'clamp'
     })
@@ -77,7 +73,10 @@ class BottomSheet extends React.Component {
 
     return (
       <Animated.View style={[styles.favoriteIcon, {transform}]}>
-        <Image source={require('./favorite_white.png')} style={{width: 32, height: 32}} />
+        <Image
+          source={require('./favorite_white.png')}
+          style={{width: 32, height: 32}}
+        />
       </Animated.View>
     )
   }
@@ -88,10 +87,11 @@ class BottomSheet extends React.Component {
         <Text>Hello world</Text>
         <SlidingUpPanel
           visible
+          startCollapsed
           showBackdrop={false}
-          ref={(c) => {this._panel = c}}
+          ref={c => this._panel = c}
           draggableRange={this.props.draggableRange}
-          onDrag={(v) => this._draggedValue.setValue(v)}>
+          onDrag={v => this._draggedValue.setValue(v)}>
           <View style={styles.panel}>
             {this._renderFavoriteIcon()}
             <View style={styles.panelHeader}>
