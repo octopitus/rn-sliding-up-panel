@@ -1,3 +1,8 @@
+/**
+ * You can make the panel renders collapsed at bottom
+ * by using the startCollapsed prop.
+ */
+
 import React from 'react'
 
 import {
