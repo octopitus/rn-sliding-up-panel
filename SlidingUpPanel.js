@@ -28,6 +28,7 @@ class SlidingUpPanel extends React.Component {
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
     onRequestClose: PropTypes.func,
+    startCollapsed: PropTypes.bool,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
@@ -36,7 +37,6 @@ class SlidingUpPanel extends React.Component {
   }
 
   static defaultProps = {
-    visible: false,
     height: visibleHeight,
     draggableRange: {top: visibleHeight, bottom: 0},
     onDrag: () => {},
@@ -72,8 +72,9 @@ class SlidingUpPanel extends React.Component {
     }
 
     const {top, bottom} = props.draggableRange
+    const collapsedPosition = this.props.startCollapsed ? -bottom : -top
 
-    this._animatedValueY = this.state.visible ? this.props.startCollapsed ? -bottom : -top : -bottom
+    this._animatedValueY = this.state.visible ? collapsedPosition : -bottom
     this._translateYAnimation = new Animated.Value(this._animatedValueY)
     this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
 
