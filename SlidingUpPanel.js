@@ -33,7 +33,8 @@ class SlidingUpPanel extends React.Component {
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
     contentStyle: PropTypes.any,
-    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
+    renderDraggableHeader: PropTypes.func
   }
 
   static defaultProps = {
@@ -45,7 +46,8 @@ class SlidingUpPanel extends React.Component {
     onRequestClose: () => {},
     allowMomentum: true,
     allowDragging: true,
-    showBackdrop: true
+    showBackdrop: true,
+    renderDraggableHeader: null
   }
 
   constructor(props) {
@@ -295,6 +297,18 @@ class SlidingUpPanel extends React.Component {
           pointerEvents="box-none"
           style={animatedContainerStyles}>
           {this.props.children(this._panResponder.panHandlers)}
+        </Animated.View>
+      )
+    }
+
+    if (typeof this.props.renderDraggableHeader === 'function') {
+      return (
+        <Animated.View
+          key="content"
+          pointerEvents="box-none"
+          style={animatedContainerStyles}>
+          {this.props.renderDraggableHeader(this._panResponder.panHandlers)}
+          {this.props.children}
         </Animated.View>
       )
     }
