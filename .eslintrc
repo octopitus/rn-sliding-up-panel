@@ -1,26 +1,4 @@
 {
   "parser": "babel-eslint",
-  "globals": {
-    "__DEV__": true
-  },
-  "env": {
-    "jest": true,
-    "es6": true,
-    "node": true,
-    "browser": true
-  },
-  "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended",
-    "plugin:react-native/all",
-    "prettier/react"
-  ],
-  "plugins": ["babel", "react", "react-native", "prettier"],
-  "rules": {
-    "no-console": 0,
-    "no-extra-semi": "error",
-    "array-bracket-spacing": ["error", "never"],
-    "object-curly-spacing": ["error", "never"],
-    "prettier/prettier": "error"
-  }
+  "extends": "eslint-config-octopitus"
 }
