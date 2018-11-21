@@ -24,6 +24,8 @@ class SlidingUpPanel extends React.Component {
       top: PropTypes.number,
       bottom: PropTypes.number,
     }),
+    minimumVelocityThreshold: PropTypes.number,
+    minimumDistanceThreshold: PropTypes.number,
     onDrag: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
@@ -179,14 +181,9 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line class-methods-use-this, no-unused-vars
   _onPanResponderTerminate(evt, gestureState) {
     //
-  }
-
-  _isInsideDraggableRange() {
-    const { top, bottom } = this.props.draggableRange
-    return this._animatedValueY >= -top && this._animatedValueY <= -bottom
   }
 
   _onDrag({ value }) {
@@ -217,12 +214,9 @@ class SlidingUpPanel extends React.Component {
     this.props.onDrag(-this._animatedValueY)
   }
 
-  transitionTo(mayBeValueOrOptions) {
-    if (typeof mayBeValueOrOptions === 'object') {
-      return this._triggerAnimation(mayBeValueOrOptions)
-    }
-
-    return this._triggerAnimation({ toValue: mayBeValueOrOptions })
+  _isInsideDraggableRange() {
+    const { top, bottom } = this.props.draggableRange
+    return this._animatedValueY >= -top && this._animatedValueY <= -bottom
   }
 
   _triggerAnimation(options = {}) {
@@ -319,6 +313,19 @@ class SlidingUpPanel extends React.Component {
     }
 
     return [this._renderBackdrop(), this._renderContent()]
+  }
+
+  transitionTo(mayBeValueOrOptions) {
+    if (typeof mayBeValueOrOptions === 'object') {
+      return this._triggerAnimation(mayBeValueOrOptions)
+    }
+
+    return this._triggerAnimation({ toValue: mayBeValueOrOptions })
+  }
+
+  // eslint-disable-next-line class-methods-use-this, no-unused-vars
+  reactToKeyboardEvent(node) {
+    //
   }
 }
 
