@@ -10,20 +10,20 @@ import styles from './libs/styles'
 
 const deprecated = (condition, message) => condition && console.warn(message)
 
-const MINIMUM_VELOCITY_THRESHOLD = 0.1
+const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
 
-const MINIMUM_DISTANCE_THRESHOLD = 0.24
+const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
 
 const DEFAULT_SLIDING_DURATION = 240
 
 class SlidingUpPanel extends React.Component {
   static propTypes = {
-    visible: PropTypes.bool.isRequired,
+    visible: PropTypes.bool,
+    height: PropTypes.number,
     draggableRange: PropTypes.shape({
       top: PropTypes.number,
       bottom: PropTypes.number
     }),
-    height: PropTypes.number,
     onDrag: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
@@ -38,8 +38,11 @@ class SlidingUpPanel extends React.Component {
   }
 
   static defaultProps = {
+    visible: false,
     height: visibleHeight,
     draggableRange: {top: visibleHeight, bottom: 0},
+    minimumVelocityThreshold: DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
+    minimumDistanceThreshold: DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     onDrag: () => {},
     onDragStart: () => {},
     onDragEnd: () => {},
@@ -135,7 +138,7 @@ class SlidingUpPanel extends React.Component {
     return (
       this.props.allowDragging &&
       this._isInsideDraggableRange() &&
-      Math.abs(gestureState.dy) > MINIMUM_DISTANCE_THRESHOLD
+      Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
     )
   }
 
@@ -168,7 +171,7 @@ class SlidingUpPanel extends React.Component {
       return
     }
 
-    if (Math.abs(gestureState.vy) > MINIMUM_VELOCITY_THRESHOLD) {
+    if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
       this._flick.start({
         velocity: gestureState.vy,
         fromValue: this._animatedValueY
