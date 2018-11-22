@@ -1,4 +1,4 @@
-import {PixelRatio} from 'react-native'
+import { PixelRatio } from 'react-native'
 import clamp from 'clamp'
 
 const density = PixelRatio.get()
@@ -21,6 +21,14 @@ export default class FlickAnimation {
     if (value === this._min || value === this._max) {
       this.stop()
     }
+  }
+
+  setMax(value) {
+    this._max = value
+  }
+
+  setMin(value) {
+    this._min = value
   }
 
   start(config) {
