@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Animated, PanResponder, Platform } from 'react-native'
+import { Keyboard, Animated, PanResponder, Platform } from 'react-native'
 
 import clamp from 'clamp'
 
@@ -59,15 +59,19 @@ class SlidingUpPanel extends React.Component {
     super(props)
 
     this._onDrag = this._onDrag.bind(this)
-    this._renderContent = this._renderContent.bind(this)
-    this._renderBackdrop = this._renderBackdrop.bind(this)
+    this._onKeyboardShown = this._onKeyboardShown.bind(this)
+    this._onKeyboardHiden = this._onKeyboardHiden.bind(this)
+    this._onRequestClose = this._onRequestClose.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
     this._triggerAnimation = this._triggerAnimation.bind(this)
+    this._renderContent = this._renderContent.bind(this)
+    this._renderBackdrop = this._renderBackdrop.bind(this)
 
     this.transitionTo = this.transitionTo.bind(this)
 
     this.state = {
       visible: props.visible,
+      keyboardHeight: 0,
     }
 
     if (__DEV__) {
@@ -99,6 +103,14 @@ class SlidingUpPanel extends React.Component {
     this._requestCloseTriggered = false
 
     this._translateYAnimation.addListener(this._onDrag)
+    this._keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      this._onKeyboardShown
+    )
+    this._keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      this._onKeyboardHiden
+    )
   }
 
   componentWillReceiveProps(nextProps) {
@@ -132,7 +144,18 @@ class SlidingUpPanel extends React.Component {
       nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
       const { top, bottom } = nextProps.draggableRange
-      this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
+      this._flick.setMin(-top)
+      this._flick.setMax(-bottom)
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._keyboardDidShowListener != null) {
+      this._keyboardDidShowListener.remove()
+    }
+
+    if (this._keyboardDidHideListener != null) {
+      this._keyboardDidHideListener.remove()
     }
   }
 
@@ -186,6 +209,11 @@ class SlidingUpPanel extends React.Component {
     //
   }
 
+  _onRequestClose() {
+    Keyboard.dismiss()
+    this.props.onRequestClose()
+  }
+
   _onDrag({ value }) {
     const { top, bottom } = this.props.draggableRange
 
@@ -197,7 +225,7 @@ class SlidingUpPanel extends React.Component {
       }
 
       if (!this._requestCloseTriggered) {
-        this.props.onRequestClose()
+        this._onRequestClose()
       }
       return
     }
@@ -210,13 +238,34 @@ class SlidingUpPanel extends React.Component {
       }
     }
 
-    this._animatedValueY = clamp(value, -top, -bottom)
+    const keyboardHeight = this.state.keyboardHeight
+    this._animatedValueY = clamp(value, -top - keyboardHeight, -bottom)
     this.props.onDrag(-this._animatedValueY)
   }
 
+  _onKeyboardShown(event) {
+    const { top } = this.props.draggableRange
+    const { height } = event.endCoordinates
+
+    this._flick.setMin(-top - height)
+    this.setState({ keyboardHeight: height })
+  }
+
+  _onKeyboardHiden() {
+    const { top } = this.props.draggableRange
+
+    this._flick.setMin(-top)
+    this.setState({ keyboardHeight: 0 })
+  }
+
   _isInsideDraggableRange() {
+    const keyboardHeight = this.state.keyboardHeight
     const { top, bottom } = this.props.draggableRange
-    return this._animatedValueY >= -top && this._animatedValueY <= -bottom
+
+    return (
+      this._animatedValueY >= -top - keyboardHeight &&
+      this._animatedValueY <= -bottom
+    )
   }
 
   _triggerAnimation(options = {}) {
@@ -247,10 +296,11 @@ class SlidingUpPanel extends React.Component {
       return null
     }
 
+    const keyboardHeight = this.state.keyboardHeight
     const { top, bottom } = this.props.draggableRange
 
     const backdropOpacity = this._translateYAnimation.interpolate({
-      inputRange: [-top, -bottom],
+      inputRange: [-top - keyboardHeight, -bottom],
       outputRange: [this.props.backdropOpacity, 0],
       extrapolate: 'clamp',
     })
@@ -261,19 +311,20 @@ class SlidingUpPanel extends React.Component {
         pointerEvents="box-only"
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
-        onTouchEnd={() => this.props.onRequestClose()}
+        onTouchEnd={this._onRequestClose}
         style={[styles.backdrop, { opacity: backdropOpacity }]}
       />
     )
   }
 
   _renderContent() {
+    const keyboardHeight = this.state.keyboardHeight
     const { top, bottom } = this.props.draggableRange
     const height = this.props.height
 
     const translateY = this._translateYAnimation.interpolate({
-      inputRange: [-top, -bottom],
-      outputRange: [-top, -bottom],
+      inputRange: [-top - keyboardHeight, -bottom],
+      outputRange: [-top - keyboardHeight, -bottom],
       extrapolate: 'clamp',
     })
 
