@@ -39,6 +39,7 @@ class SlidingUpPanel extends React.Component {
   static propTypes = {
     visible: PropTypes.bool,
     height: PropTypes.number,
+    animatedValue: PropTypes.instanceOf(Animated.Value),
     draggableRange: PropTypes.shape({
       top: PropTypes.number,
       bottom: PropTypes.number,
@@ -63,6 +64,7 @@ class SlidingUpPanel extends React.Component {
   static defaultProps = {
     visible: false,
     height: visibleHeight,
+    animatedValue: new Animated.Value(0),
     draggableRange: { top: visibleHeight, bottom: 0 },
     minimumVelocityThreshold: DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
@@ -108,8 +110,8 @@ class SlidingUpPanel extends React.Component {
     const collapsedPosition = this.props.startCollapsed ? -bottom : -top
 
     this._animatedValueY = this.state.visible ? collapsedPosition : -bottom
-    this._translateYAnimation = new Animated.Value(this._animatedValueY)
-    this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
+    this.props.animatedValue.setValue(this._animatedValueY)
+    this._flick = new FlickAnimation(this.props.animatedValue, -top, -bottom)
 
     this._panResponder = PanResponder.create({
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
@@ -124,7 +126,7 @@ class SlidingUpPanel extends React.Component {
     this._isAtBottom = !props.visible
     this._requestCloseTriggered = false
 
-    this._translateYAnimation.addListener(this._onDrag)
+    this.props.animatedValue.addListener(this._onDrag)
     this._keyboardShowListener = Keyboard.addListener(
       keyboardShowEvent,
       this._onKeyboardShown
@@ -187,14 +189,15 @@ class SlidingUpPanel extends React.Component {
 
   // eslint-disable-next-line no-unused-vars
   _onPanResponderGrant(evt, gestureState) {
+    const { top, bottom } = this.props.draggableRange
+    const value = this.props.animatedValue.__getValue()
+
+    this._animatedValueY = clamp(value, -top, -bottom)
     this._flick.stop()
-    this._translateYAnimation.setOffset(this._animatedValueY)
-    this._translateYAnimation.setValue(0)
-    this.props.onDragStart(-this._animatedValueY)
   }
 
   _onPanResponderMove(evt, gestureState) {
-    this._translateYAnimation.setValue(gestureState.dy)
+    this.props.animatedValue.setValue(this._animatedValueY + gestureState.dy)
   }
 
   // Trigger when you release your finger
@@ -203,7 +206,6 @@ class SlidingUpPanel extends React.Component {
       return
     }
 
-    this._translateYAnimation.flattenOffset()
     const cancelFlick = this.props.onDragEnd(-this._animatedValueY)
 
     if (!this.props.allowMomentum || cancelFlick) {
@@ -211,10 +213,8 @@ class SlidingUpPanel extends React.Component {
     }
 
     if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
-      this._flick.start({
-        velocity: gestureState.vy,
-        fromValue: this._animatedValueY,
-      })
+      const fromValue = this.props.animatedValue.__getValue()
+      this._flick.start({ velocity: gestureState.vy, fromValue })
     }
   }
 
@@ -229,7 +229,7 @@ class SlidingUpPanel extends React.Component {
   }
 
   _onDrag({ value }) {
-    const { top, bottom } = this.props.draggableRange
+    const { bottom } = this.props.draggableRange
 
     if (value >= -bottom) {
       this._isAtBottom = true
@@ -251,9 +251,6 @@ class SlidingUpPanel extends React.Component {
         this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
       }
     }
-
-    this._animatedValueY = clamp(value, -top, -bottom)
-    this.props.onDrag(-this._animatedValueY)
   }
 
   async _onKeyboardShown(event) {
@@ -303,17 +300,12 @@ class SlidingUpPanel extends React.Component {
       duration = DEFAULT_SLIDING_DURATION,
     } = options
 
-    const animationConfig = {
+    const animation = Animated.timing(this.props.animatedValue, {
       duration,
       easing,
       toValue: -Math.abs(toValue),
       delay: Platform.OS === 'android' ? 166.67 : undefined, // to make it looks smooth on android
-    }
-
-    const animation = Animated.timing(
-      this._translateYAnimation,
-      animationConfig
-    )
+    })
 
     animation.start(onAnimationEnd)
   }
@@ -325,7 +317,7 @@ class SlidingUpPanel extends React.Component {
 
     const { top, bottom } = this.props.draggableRange
 
-    const backdropOpacity = this._translateYAnimation.interpolate({
+    const backdropOpacity = this.props.animatedValue.interpolate({
       inputRange: [-top, -bottom],
       outputRange: [this.props.backdropOpacity, 0],
       extrapolate: 'clamp',
@@ -347,7 +339,7 @@ class SlidingUpPanel extends React.Component {
     const { top, bottom } = this.props.draggableRange
     const height = this.props.height
 
-    const translateY = this._translateYAnimation.interpolate({
+    const translateY = this.props.animatedValue.interpolate({
       inputRange: [-top, -bottom],
       outputRange: [-top, -bottom],
       extrapolate: 'clamp',
