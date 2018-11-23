@@ -1,3 +1,5 @@
+> :collision::collision: [V2 Roadmap](https://github.com/octopitus/rn-sliding-up-panel/issues/79)
+
 # Sliding up panel [![npm](https://img.shields.io/npm/v/rn-sliding-up-panel.svg)](https://www.npmjs.com/package/rn-sliding-up-panel)
 
 React Native draggable sliding up panel purly implemented in Javascript. Inspired by [AndroidSlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel). Works nicely on both iOS and Android.
