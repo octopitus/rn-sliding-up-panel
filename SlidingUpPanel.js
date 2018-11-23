@@ -1,5 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import invariant from 'invariant'
+
 import {
   TextInput,
   Keyboard,
@@ -25,8 +27,6 @@ const keyboardHideEvent = Platform.select({
   ios: 'keyboardWillHide',
 })
 
-const deprecated = (condition, message) => condition && console.warn(message)
-
 const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
 
 const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
@@ -37,7 +37,6 @@ const EXTRA_MARGIN = 75
 
 class SlidingUpPanel extends React.Component {
   static propTypes = {
-    visible: PropTypes.bool,
     height: PropTypes.number,
     animatedValue: PropTypes.instanceOf(Animated.Value),
     draggableRange: PropTypes.shape({
@@ -46,34 +45,27 @@ class SlidingUpPanel extends React.Component {
     }),
     minimumVelocityThreshold: PropTypes.number,
     minimumDistanceThreshold: PropTypes.number,
-    reactToKeyboardEvent: PropTypes.bool,
+    avoidKeyboard: PropTypes.bool,
     keyboardExtraMargin: PropTypes.number,
-    onDrag: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
-    onRequestClose: PropTypes.func,
-    startCollapsed: PropTypes.bool,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
-    contentStyle: PropTypes.any,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
   }
 
   static defaultProps = {
-    visible: false,
     height: visibleHeight,
     animatedValue: new Animated.Value(0),
     draggableRange: { top: visibleHeight, bottom: 0 },
     minimumVelocityThreshold: DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
-    reactToKeyboardEvent: false,
+    avoidKeyboard: true,
     keyboardExtraMargin: EXTRA_MARGIN,
-    onDrag: () => {},
     onDragStart: () => {},
     onDragEnd: () => {},
-    onRequestClose: () => {},
     allowMomentum: true,
     allowDragging: true,
     showBackdrop: true,
@@ -86,7 +78,6 @@ class SlidingUpPanel extends React.Component {
     this._onDrag = this._onDrag.bind(this)
     this._onKeyboardShown = this._onKeyboardShown.bind(this)
     this._onKeyboardHiden = this._onKeyboardHiden.bind(this)
-    this._onRequestClose = this._onRequestClose.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
     this._triggerAnimation = this._triggerAnimation.bind(this)
     this._renderContent = this._renderContent.bind(this)
@@ -94,23 +85,25 @@ class SlidingUpPanel extends React.Component {
 
     this.transitionTo = this.transitionTo.bind(this)
 
-    this.state = {
-      visible: props.visible,
+    const { top, bottom } = this.props.draggableRange
+
+    // If draggableRange is represent but not the animatedValue
+    if (props.draggableRange != null && props.animatedValue == null) {
+      this.props.animatedValue.setValue(-bottom)
     }
 
+    this._animatedValueY = this.props.animatedValue.__getValue()
+
     if (__DEV__) {
-      deprecated(
-        props.contentStyle,
-        'SlidingUpPanel#contentStyle is deprecated. ' +
-          'You should wrap your content inside a View.'
+      invariant(
+        this._isInsideDraggableRange(-this._animatedValueY),
+        'Animated value is out of boundary. It should be within [%s, %s] but %s was given.',
+        top,
+        bottom,
+        this._animatedValueY
       )
     }
 
-    const { top, bottom } = props.draggableRange
-    const collapsedPosition = this.props.startCollapsed ? -bottom : -top
-
-    this._animatedValueY = this.state.visible ? collapsedPosition : -bottom
-    this.props.animatedValue.setValue(this._animatedValueY)
     this._flick = new FlickAnimation(this.props.animatedValue, -top, -bottom)
 
     this._panResponder = PanResponder.create({
@@ -123,8 +116,6 @@ class SlidingUpPanel extends React.Component {
     })
 
     this._backdrop = null
-    this._isAtBottom = !props.visible
-    this._requestCloseTriggered = false
 
     this.props.animatedValue.addListener(this._onDrag)
     this._keyboardShowListener = Keyboard.addListener(
@@ -138,31 +129,6 @@ class SlidingUpPanel extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.visible && !this.props.visible) {
-      this._requestCloseTriggered = false
-
-      this.setState({ visible: true }, () => {
-        this.transitionTo(-this.props.draggableRange.top)
-      })
-      return
-    }
-
-    const { bottom } = this.props.draggableRange
-
-    if (
-      !nextProps.visible &&
-      this.props.visible &&
-      -this._animatedValueY > bottom
-    ) {
-      this._requestCloseTriggered = true
-
-      this.transitionTo({
-        toValue: -bottom,
-        onAnimationEnd: () => this.setState({ visible: false }),
-      })
-      return
-    }
-
     if (
       nextProps.draggableRange.top !== this.props.draggableRange.top ||
       nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
@@ -223,38 +189,24 @@ class SlidingUpPanel extends React.Component {
     //
   }
 
-  _onRequestClose() {
-    Keyboard.dismiss()
-    this.props.onRequestClose()
-  }
-
   _onDrag({ value }) {
-    const { bottom } = this.props.draggableRange
-
-    if (value >= -bottom) {
-      this._isAtBottom = true
-
-      if (this._backdrop != null) {
-        this._backdrop.setNativeProps({ pointerEvents: 'none' })
-      }
-
-      if (!this._requestCloseTriggered) {
-        this._onRequestClose()
-      }
+    if (this._backdrop == null) {
       return
     }
 
-    if (this._isAtBottom) {
-      this._isAtBottom = false
+    if (this._isAtBottom(value)) {
+      Keyboard.dismiss()
+      this._backdrop.setNativeProps({ pointerEvents: 'none' })
+      return
+    }
 
-      if (this._backdrop != null) {
-        this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
-      }
+    if (!this._isAtBottom(this._animatedValueY)) {
+      this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
     }
   }
 
   async _onKeyboardShown(event) {
-    if (!this.props.reactToKeyboardEvent) {
+    if (!this.props.avoidKeyboard) {
       return
     }
 
@@ -267,7 +219,7 @@ class SlidingUpPanel extends React.Component {
     const { screenY } = event.endCoordinates
     const { y } = await measureElement(node)
 
-    const extraHeight = this.props.keyboardExtraHeight
+    const extraHeight = this.props.keyboardExtraMargin
     const fromKeyboardTopEdgeToNode = y - screenY
 
     if (y > screenY - extraHeight) {
@@ -292,6 +244,11 @@ class SlidingUpPanel extends React.Component {
     return value <= top && value >= bottom
   }
 
+  _isAtBottom(value) {
+    const { bottom } = this.props.draggableRange
+    return value === -bottom
+  }
+
   _triggerAnimation(options = {}) {
     const {
       toValue,
@@ -304,7 +261,6 @@ class SlidingUpPanel extends React.Component {
       duration,
       easing,
       toValue: -Math.abs(toValue),
-      delay: Platform.OS === 'android' ? 166.67 : undefined, // to make it looks smooth on android
     })
 
     animation.start(onAnimationEnd)
@@ -323,13 +279,18 @@ class SlidingUpPanel extends React.Component {
       extrapolate: 'clamp',
     })
 
+    // Initial pointer events
+    const pointerEvents = !this._isAtBottom(this._animatedValueY)
+      ? 'box-only'
+      : 'none'
+
     return (
       <Animated.View
         key="backdrop"
-        pointerEvents="box-only"
+        pointerEvents={pointerEvents}
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
-        onTouchEnd={this._onRequestClose}
+        onTouchEnd={() => this.transitionTo('bottom')}
         style={[styles.backdrop, { opacity: backdropOpacity }]}
       />
     )
@@ -376,16 +337,22 @@ class SlidingUpPanel extends React.Component {
   }
 
   render() {
-    if (!this.state.visible) {
-      return null
-    }
-
     return [this._renderBackdrop(), this._renderContent()]
   }
 
   transitionTo(mayBeValueOrOptions) {
     if (typeof mayBeValueOrOptions === 'object') {
       return this._triggerAnimation(mayBeValueOrOptions)
+    }
+
+    const { top, bottom } = this.props.draggableRange
+
+    if (mayBeValueOrOptions === 'top') {
+      return this._triggerAnimation({ toValue: top })
+    }
+
+    if (mayBeValueOrOptions === 'bottom') {
+      return this._triggerAnimation({ toValue: bottom })
     }
 
     return this._triggerAnimation({ toValue: mayBeValueOrOptions })
