@@ -107,11 +107,13 @@ class SlidingUpPanel extends React.Component {
     this._flick = new FlickAnimation(this.props.animatedValue, -top, -bottom)
 
     this._panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this), // prettier-ignore
       onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
       onPanResponderGrant: this._onPanResponderGrant.bind(this),
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this),
       onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
+      onShouldBlockNativeResponder: () => false,
       onPanResponderTerminationRequest: () => false,
     })
 
@@ -145,6 +147,11 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
+  _onStartShouldSetPanResponder() {
+    this._flick.stop()
+    return true
+  }
+
   _onMoveShouldSetPanResponder(evt, gestureState) {
     return (
       this.props.allowDragging &&
@@ -159,6 +166,7 @@ class SlidingUpPanel extends React.Component {
     const value = this.props.animatedValue.__getValue()
 
     this._animatedValueY = clamp(value, -top, -bottom)
+    this._panResponderGrant = true
     this._flick.stop()
   }
 
@@ -168,6 +176,8 @@ class SlidingUpPanel extends React.Component {
 
   // Trigger when you release your finger
   _onPanResponderRelease(evt, gestureState) {
+    this._panResponderGrant = false
+
     if (!this._isInsideDraggableRange(-this._animatedValueY)) {
       return
     }
@@ -190,6 +200,11 @@ class SlidingUpPanel extends React.Component {
   }
 
   _onDrag({ value }) {
+    // If the animation is triggered from outside
+    if (!this._panResponderGrant) {
+      this._animatedValueY = value
+    }
+
     if (this._backdrop == null) {
       return
     }
@@ -233,10 +248,14 @@ class SlidingUpPanel extends React.Component {
   }
 
   _onKeyboardHiden() {
-    if (this._lastPosition != null) {
+    if (
+      this._lastPosition != null &&
+      !this._isAtBottom(-this._animatedValueY)
+    ) {
       this.transitionTo(this._lastPosition)
-      this._lastPosition = null
     }
+
+    this._lastPosition = null
   }
 
   _isInsideDraggableRange(value) {
