@@ -7,7 +7,15 @@ const TIME_CONTANT = 325
 
 export default class FlickAnimation {
   constructor(animation, min, max) {
+    this.isActive = this.isActive.bind(this)
+    this.setActive = this.setActive.bind(this)
+    this.setMax = this.setMax.bind(this)
+    this.setMin = this.setMin.bind(this)
+    this.setAmplitude = this.setAmplitude.bind(this)
     this.onUpdate = this.onUpdate.bind(this)
+    this.start = this.start.bind(this)
+    this.stop = this.stop.bind(this)
+    this._scroll = this._scroll.bind(this)
 
     this._animation = animation
     this._min = min
@@ -21,6 +29,14 @@ export default class FlickAnimation {
     if (value === this._min || value === this._max) {
       this.stop()
     }
+  }
+
+  isActive() {
+    return this._active === true
+  }
+
+  setActive(value) {
+    this._active = value
   }
 
   setMax(value) {
