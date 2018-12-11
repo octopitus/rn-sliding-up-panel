@@ -46,7 +46,6 @@ class SlidingUpPanel extends React.Component {
     minimumVelocityThreshold: PropTypes.number,
     minimumDistanceThreshold: PropTypes.number,
     avoidKeyboard: PropTypes.bool,
-    keyboardExtraMargin: PropTypes.number,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
     allowMomentum: PropTypes.bool,
@@ -63,7 +62,6 @@ class SlidingUpPanel extends React.Component {
     minimumVelocityThreshold: DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     avoidKeyboard: true,
-    keyboardExtraMargin: EXTRA_MARGIN,
     onDragStart: () => {},
     onDragEnd: () => {},
     allowMomentum: true,
@@ -72,18 +70,38 @@ class SlidingUpPanel extends React.Component {
     backdropOpacity: 0.75,
   }
 
+  // eslint-disable-next-line react/sort-comp
+  _panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this), // prettier-ignore
+    onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
+    onPanResponderGrant: this._onPanResponderGrant.bind(this),
+    onPanResponderMove: this._onPanResponderMove.bind(this),
+    onPanResponderRelease: this._onPanResponderRelease.bind(this),
+    onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
+    onShouldBlockNativeResponder: () => false,
+    onPanResponderTerminationRequest: () => false,
+  })
+
+  _keyboardShowListener = Keyboard.addListener(
+    keyboardShowEvent,
+    this._onKeyboardShown.bind(this)
+  )
+
+  _keyboardHideListener = Keyboard.addListener(
+    keyboardHideEvent,
+    this._onKeyboardHiden.bind(this)
+  )
+
   constructor(props) {
     super(props)
 
-    this._onDrag = this._onDrag.bind(this)
-    this._onKeyboardShown = this._onKeyboardShown.bind(this)
-    this._onKeyboardHiden = this._onKeyboardHiden.bind(this)
+    this._storeKeyboardPosition = this._storeKeyboardPosition.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
     this._triggerAnimation = this._triggerAnimation.bind(this)
     this._renderContent = this._renderContent.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
-
     this.transitionTo = this.transitionTo.bind(this)
+    this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const { top, bottom } = this.props.draggableRange
 
@@ -105,29 +123,7 @@ class SlidingUpPanel extends React.Component {
     }
 
     this._flick = new FlickAnimation(this.props.animatedValue, -top, -bottom)
-
-    this._panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this), // prettier-ignore
-      onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-      onPanResponderGrant: this._onPanResponderGrant.bind(this),
-      onPanResponderMove: this._onPanResponderMove.bind(this),
-      onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-      onShouldBlockNativeResponder: () => false,
-      onPanResponderTerminationRequest: () => false,
-    })
-
-    this._backdrop = null
-
-    this.props.animatedValue.addListener(this._onDrag)
-    this._keyboardShowListener = Keyboard.addListener(
-      keyboardShowEvent,
-      this._onKeyboardShown
-    )
-    this._keyboardHideListener = Keyboard.addListener(
-      keyboardHideEvent,
-      this._onKeyboardHiden
-    )
+    this._animatedValueListener = this.props.animatedValue.addListener(this._onDrag.bind(this)) // prettier-ignore
   }
 
   componentWillReceiveProps(nextProps) {
@@ -144,6 +140,10 @@ class SlidingUpPanel extends React.Component {
   componentWillUnmount() {
     if (this._keyboardShowListener != null) {
       this._keyboardShowListener.remove()
+    }
+
+    if (this._animatedValueListener != null) {
+      this.props.animatedValue.removeListener(this._animatedValueListener)
     }
   }
 
@@ -205,53 +205,42 @@ class SlidingUpPanel extends React.Component {
       this._animatedValueY = value
     }
 
+    const isAtBottom = this._isAtBottom(value)
+
+    if (isAtBottom) {
+      Keyboard.dismiss()
+    }
+
     if (this._backdrop == null) {
       return
     }
 
-    if (this._isAtBottom(value)) {
-      Keyboard.dismiss()
+    if (isAtBottom) {
       this._backdrop.setNativeProps({ pointerEvents: 'none' })
-      return
-    }
-
-    if (!this._isAtBottom(this._animatedValueY)) {
+    } else if (!this._isAtBottom(this._animatedValueY)) {
       this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
     }
   }
 
-  async _onKeyboardShown(event) {
+  _onKeyboardShown(event) {
     if (!this.props.avoidKeyboard) {
       return
     }
 
+    this._storeKeyboardPosition(event.endCoordinates.screenY)
+
     const node = TextInput.State.currentlyFocusedField()
 
-    if (node == null) {
-      return
-    }
-
-    const { screenY } = event.endCoordinates
-    const { y } = await measureElement(node)
-
-    const extraHeight = this.props.keyboardExtraMargin
-    const fromKeyboardTopEdgeToNode = y - screenY
-
-    if (y > screenY - extraHeight) {
-      this._lastPosition = -this._animatedValueY
-
-      const transitionDistance =
-        -this._animatedValueY + fromKeyboardTopEdgeToNode + extraHeight
-
-      this.transitionTo(transitionDistance)
+    if (node != null) {
+      this.scrollIntoView(node)
     }
   }
 
   _onKeyboardHiden() {
-    if (
-      this._lastPosition != null &&
-      !this._isAtBottom(-this._animatedValueY)
-    ) {
+    this._storeKeyboardPosition(0)
+
+    // Restore last position
+    if (this._lastPosition != null && !this._isAtBottom(this._animatedValueY)) {
       this.transitionTo(this._lastPosition)
     }
 
@@ -265,7 +254,7 @@ class SlidingUpPanel extends React.Component {
 
   _isAtBottom(value) {
     const { bottom } = this.props.draggableRange
-    return value === -bottom
+    return value >= -bottom
   }
 
   _triggerAnimation(options = {}) {
@@ -283,6 +272,10 @@ class SlidingUpPanel extends React.Component {
     })
 
     animation.start(onAnimationEnd)
+  }
+
+  _storeKeyboardPosition(value) {
+    this._keyboardYPosition = value
   }
 
   _renderBackdrop() {
@@ -364,17 +357,37 @@ class SlidingUpPanel extends React.Component {
       return this._triggerAnimation(mayBeValueOrOptions)
     }
 
-    const { top, bottom } = this.props.draggableRange
-
-    if (mayBeValueOrOptions === 'top') {
-      return this._triggerAnimation({ toValue: top })
-    }
-
-    if (mayBeValueOrOptions === 'bottom') {
-      return this._triggerAnimation({ toValue: bottom })
-    }
-
     return this._triggerAnimation({ toValue: mayBeValueOrOptions })
+  }
+
+  transitionToTop() {
+    const { top } = this.props.draggableRange
+    return this._triggerAnimation({ toValue: top })
+  }
+
+  transitionToBottom() {
+    const { bottom } = this.props.draggableRange
+    this._triggerAnimation({ toValue: bottom })
+  }
+
+  async scrollIntoView(node, options = {}) {
+    if (!this._keyboardYPosition) {
+      return
+    }
+
+    this._flick.stop()
+
+    const { y } = await measureElement(node)
+    const extraMargin = options.keyboardExtraMargin || EXTRA_MARGIN
+
+    if (y > this._keyboardYPosition - extraMargin) {
+      const animatedValue = this.props.animatedValue.__getValue()
+      const fromNodeToKeyboard = y - (this._keyboardYPosition - extraMargin)
+      const transitionDistance = -animatedValue + fromNodeToKeyboard
+
+      this._lastPosition = animatedValue
+      this.transitionTo(transitionDistance)
+    }
   }
 }
 

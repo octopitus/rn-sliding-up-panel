@@ -31,6 +31,10 @@ export default class FlickAnimation {
     this._min = value
   }
 
+  setAmplitude(value) {
+    this._amplitude = value
+  }
+
   start(config) {
     this._active = true
     this._amplitude = config.amplitude != null ? config.amplitude : 0.8

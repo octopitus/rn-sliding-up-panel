@@ -1,23 +1,11 @@
-// @flow
-import type { Element } from 'react'
 import { findNodeHandle, UIManager } from 'react-native'
 
-export type ElementLayout = {
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-}
-
-const measureElement = (element: Element<*>): Promise<ElementLayout> => {
+const measureElement = element => {
   const node = findNodeHandle(element)
-  return new Promise((resolve: ElementLayout => void) => {
-    UIManager.measureInWindow(
-      node,
-      (x: number, y: number, width: number, height: number) => {
-        resolve({ x, y, width, height })
-      }
-    )
+  return new Promise(resolve => {
+    UIManager.measureInWindow(node, (x, y, width, height) => {
+      resolve({ x, y, width, height })
+    })
   })
 }
 
