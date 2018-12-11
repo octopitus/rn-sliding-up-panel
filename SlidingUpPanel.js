@@ -72,7 +72,7 @@ class SlidingUpPanel extends React.Component {
 
   // eslint-disable-next-line react/sort-comp
   _panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: this._onStartShouldSetPanResponder.bind(this), // prettier-ignore
+    onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
     onPanResponderGrant: this._onPanResponderGrant.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
@@ -100,7 +100,9 @@ class SlidingUpPanel extends React.Component {
     this._triggerAnimation = this._triggerAnimation.bind(this)
     this._renderContent = this._renderContent.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
-    this.transitionTo = this.transitionTo.bind(this)
+
+    this.show = this.show.bind(this)
+    this.hide = this.hide.bind(this)
     this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const { top, bottom } = this.props.draggableRange
@@ -147,11 +149,6 @@ class SlidingUpPanel extends React.Component {
     }
   }
 
-  _onStartShouldSetPanResponder() {
-    this._flick.stop()
-    return true
-  }
-
   _onMoveShouldSetPanResponder(evt, gestureState) {
     return (
       this.props.allowDragging &&
@@ -160,14 +157,15 @@ class SlidingUpPanel extends React.Component {
     )
   }
 
-  // eslint-disable-next-line no-unused-vars
   _onPanResponderGrant(evt, gestureState) {
+    this._flick.stop()
+
     const { top, bottom } = this.props.draggableRange
     const value = this.props.animatedValue.__getValue()
 
     this._animatedValueY = clamp(value, -top, -bottom)
     this._panResponderGrant = true
-    this._flick.stop()
+    this.props.onDragStart(-this._animatedValueY)
   }
 
   _onPanResponderMove(evt, gestureState) {
@@ -182,9 +180,9 @@ class SlidingUpPanel extends React.Component {
       return
     }
 
-    const cancelFlick = this.props.onDragEnd(-this._animatedValueY)
+    this.props.onDragEnd(-this._animatedValueY)
 
-    if (!this.props.allowMomentum || cancelFlick) {
+    if (!this.props.allowMomentum || this._flick.isActive()) {
       return
     }
 
@@ -241,7 +239,7 @@ class SlidingUpPanel extends React.Component {
 
     // Restore last position
     if (this._lastPosition != null && !this._isAtBottom(this._animatedValueY)) {
-      this.transitionTo(this._lastPosition)
+      this.show(this._lastPosition)
     }
 
     this._lastPosition = null
@@ -258,6 +256,8 @@ class SlidingUpPanel extends React.Component {
   }
 
   _triggerAnimation(options = {}) {
+    this._flick.setActive(true)
+
     const {
       toValue,
       easing,
@@ -271,7 +271,10 @@ class SlidingUpPanel extends React.Component {
       toValue: -Math.abs(toValue),
     })
 
-    animation.start(onAnimationEnd)
+    animation.start(({ finished }) => {
+      this._flick.setActive(false)
+      onAnimationEnd(finished)
+    })
   }
 
   _storeKeyboardPosition(value) {
@@ -302,7 +305,7 @@ class SlidingUpPanel extends React.Component {
         pointerEvents={pointerEvents}
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
-        onTouchEnd={() => this.transitionTo('bottom')}
+        onTouchEnd={() => this.hide()}
         style={[styles.backdrop, { opacity: backdropOpacity }]}
       />
     )
@@ -352,7 +355,12 @@ class SlidingUpPanel extends React.Component {
     return [this._renderBackdrop(), this._renderContent()]
   }
 
-  transitionTo(mayBeValueOrOptions) {
+  show(mayBeValueOrOptions) {
+    if (!mayBeValueOrOptions) {
+      const { top } = this.props.draggableRange
+      return this._triggerAnimation({ toValue: top })
+    }
+
     if (typeof mayBeValueOrOptions === 'object') {
       return this._triggerAnimation(mayBeValueOrOptions)
     }
@@ -360,12 +368,7 @@ class SlidingUpPanel extends React.Component {
     return this._triggerAnimation({ toValue: mayBeValueOrOptions })
   }
 
-  transitionToTop() {
-    const { top } = this.props.draggableRange
-    return this._triggerAnimation({ toValue: top })
-  }
-
-  transitionToBottom() {
+  hide() {
     const { bottom } = this.props.draggableRange
     this._triggerAnimation({ toValue: bottom })
   }
@@ -386,7 +389,7 @@ class SlidingUpPanel extends React.Component {
       const transitionDistance = -animatedValue + fromNodeToKeyboard
 
       this._lastPosition = animatedValue
-      this.transitionTo(transitionDistance)
+      this.show(transitionDistance)
     }
   }
 }
