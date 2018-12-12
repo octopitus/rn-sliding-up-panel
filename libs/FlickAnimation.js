@@ -6,20 +6,21 @@ const density = PixelRatio.get()
 const TIME_CONTANT = 325
 
 export default class FlickAnimation {
-  constructor(animation, min, max) {
+  constructor(animation, configs) {
     this.isActive = this.isActive.bind(this)
     this.setActive = this.setActive.bind(this)
     this.setMax = this.setMax.bind(this)
     this.setMin = this.setMin.bind(this)
-    this.setAmplitude = this.setAmplitude.bind(this)
+    this.setDamping = this.setDamping.bind(this)
     this.onUpdate = this.onUpdate.bind(this)
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
     this._scroll = this._scroll.bind(this)
 
     this._animation = animation
-    this._min = min
-    this._max = max
+    this._min = configs.min
+    this._max = configs.max
+    this._damping = 1 - (configs.damping != null ? configs.damping : 0.26)
   }
 
   _scroll(toValue) {
@@ -47,16 +48,15 @@ export default class FlickAnimation {
     this._min = value
   }
 
-  setAmplitude(value) {
-    this._amplitude = value
+  setDamping(value) {
+    this._damping = value
   }
 
   start(config) {
     this._active = true
-    this._amplitude = config.amplitude != null ? config.amplitude : 0.8
-    this._velocity = -config.velocity * density * 10
-    this._toValue = config.fromValue
     this._startTime = Date.now()
+    this._toValue = config.fromValue
+    this._velocity = -config.velocity * density * 10
     this._animationFrame = requestAnimationFrame(this.onUpdate)
   }
 
@@ -66,9 +66,7 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta =
-      -(this._amplitude * this._velocity) *
-      Math.exp(-elapsedTime / TIME_CONTANT)
+    const delta = -(this._damping * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
 
     if (Math.abs(delta) < 0.5) {
       return

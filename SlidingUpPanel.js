@@ -52,6 +52,7 @@ class SlidingUpPanel extends React.Component {
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
+    damping: PropTypes.number,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
   }
 
@@ -68,6 +69,7 @@ class SlidingUpPanel extends React.Component {
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
+    damping: 0.26,
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -124,8 +126,15 @@ class SlidingUpPanel extends React.Component {
       )
     }
 
-    this._flick = new FlickAnimation(this.props.animatedValue, -top, -bottom)
-    this._animatedValueListener = this.props.animatedValue.addListener(this._onDrag.bind(this)) // prettier-ignore
+    this._flick = new FlickAnimation(this.props.animatedValue, {
+      min: -top,
+      max: -bottom,
+      damping: this.props.damping,
+    })
+
+    this._animatedValueListener = this.props.animatedValue.addListener(
+      this._onDrag.bind(this)
+    )
   }
 
   componentWillReceiveProps(nextProps) {
@@ -136,6 +145,10 @@ class SlidingUpPanel extends React.Component {
       const { top, bottom } = nextProps.draggableRange
       this._flick.setMin(-top)
       this._flick.setMax(-bottom)
+    }
+
+    if (nextProps.damping !== this.props.damping) {
+      this._flick.setDamping(nextProps.damping)
     }
   }
 
