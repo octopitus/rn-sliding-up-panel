@@ -10,8 +10,6 @@ import {
   Platform,
 } from 'react-native'
 
-import clamp from 'clamp'
-
 import FlickAnimation from './libs/FlickAnimation'
 import measureElement from './libs/measureElement'
 import { visibleHeight } from './libs/layout'
@@ -173,10 +171,9 @@ class SlidingUpPanel extends React.Component {
   _onPanResponderGrant(evt, gestureState) {
     this._flick.stop()
 
-    const { top, bottom } = this.props.draggableRange
     const value = this.props.animatedValue.__getValue()
 
-    this._animatedValueY = clamp(value, -top, -bottom)
+    this._animatedValueY = value
     this._panResponderGrant = true
     this.props.onDragStart(-this._animatedValueY)
   }
