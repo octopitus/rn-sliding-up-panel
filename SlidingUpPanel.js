@@ -26,14 +26,11 @@ const keyboardHideEvent = Platform.select({
 })
 
 const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
-
 const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
-
 const DEFAULT_SLIDING_DURATION = 240
-
 const EXTRA_MARGIN = 75
 
-class SlidingUpPanel extends React.Component {
+class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
     height: PropTypes.number,
     animatedValue: PropTypes.instanceOf(Animated.Value),
@@ -50,7 +47,7 @@ class SlidingUpPanel extends React.Component {
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
-    damping: PropTypes.number,
+    friction: PropTypes.number,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
   }
 
@@ -67,7 +64,7 @@ class SlidingUpPanel extends React.Component {
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
-    damping: 0.26,
+    friction: 0.26,
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -127,7 +124,7 @@ class SlidingUpPanel extends React.Component {
     this._flick = new FlickAnimation(this.props.animatedValue, {
       min: -top,
       max: -bottom,
-      damping: this.props.damping,
+      friction: this.props.friction,
     })
 
     this._animatedValueListener = this.props.animatedValue.addListener(
@@ -137,16 +134,15 @@ class SlidingUpPanel extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (
+      nextProps.friction !== this.props.friction ||
       nextProps.draggableRange.top !== this.props.draggableRange.top ||
       nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
       const { top, bottom } = nextProps.draggableRange
+
       this._flick.setMin(-top)
       this._flick.setMax(-bottom)
-    }
-
-    if (nextProps.damping !== this.props.damping) {
-      this._flick.setDamping(nextProps.damping)
+      this._flick.fetFriction(nextProps.friction)
     }
   }
 
