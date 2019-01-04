@@ -11,7 +11,7 @@ export default class FlickAnimation {
     this.setActive = this.setActive.bind(this)
     this.setMax = this.setMax.bind(this)
     this.setMin = this.setMin.bind(this)
-    this.setDamping = this.setDamping.bind(this)
+    this.setFriction = this.setFriction.bind(this)
     this.onUpdate = this.onUpdate.bind(this)
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
@@ -20,7 +20,7 @@ export default class FlickAnimation {
     this._animation = animation
     this._min = configs.min
     this._max = configs.max
-    this._damping = 1 - (configs.damping != null ? configs.damping : 0.26)
+    this._friction = clamp(configs.friction || 0.26, 0, 1)
   }
 
   _scroll(toValue) {
@@ -48,8 +48,8 @@ export default class FlickAnimation {
     this._min = value
   }
 
-  setDamping(value) {
-    this._damping = value
+  setFriction(value) {
+    this._friction = value
   }
 
   start(config) {
@@ -66,7 +66,7 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._damping * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
+    const delta = -(this._friction * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
 
     if (Math.abs(delta) < 0.5) {
       return
