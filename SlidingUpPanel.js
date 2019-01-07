@@ -27,8 +27,9 @@ const keyboardHideEvent = Platform.select({
 
 const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
 const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
-const DEFAULT_SLIDING_DURATION = 240
+const KEYBOARD_MOVING_DURATION = 160
 const EXTRA_MARGIN = 75
+const DETAL_TIME = 66.3
 
 class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
@@ -64,7 +65,7 @@ class SlidingUpPanel extends React.PureComponent {
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
-    friction: 0.26,
+    friction: 0.72,
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -106,30 +107,30 @@ class SlidingUpPanel extends React.PureComponent {
 
     // If draggableRange is represent but not the animatedValue
     if (props.draggableRange != null && props.animatedValue == null) {
-      this.props.animatedValue.setValue(-bottom)
+      this.props.animatedValue.setValue(bottom)
     }
 
-    this._animatedValueY = this.props.animatedValue.__getValue()
+    const animatedValue = this.props.animatedValue.__getValue()
 
     if (__DEV__) {
       invariant(
-        this._isInsideDraggableRange(-this._animatedValueY),
+        this._isInsideDraggableRange(animatedValue),
         'Animated value is out of boundary. It should be within [%s, %s] but %s was given.',
         top,
         bottom,
-        this._animatedValueY
+        animatedValue
       )
     }
 
-    this._flick = new FlickAnimation(this.props.animatedValue, {
-      min: -top,
-      max: -bottom,
+    this._initialDragPosition = animatedValue
+
+    this._flick = new FlickAnimation({
+      max: top,
+      min: bottom,
       friction: this.props.friction,
     })
 
-    this._animatedValueListener = this.props.animatedValue.addListener(
-      this._onDrag.bind(this)
-    )
+    this._animatedValueListener = this._flick.onUpdate(this._onDrag.bind(this))
   }
 
   componentWillReceiveProps(nextProps) {
@@ -140,9 +141,9 @@ class SlidingUpPanel extends React.PureComponent {
     ) {
       const { top, bottom } = nextProps.draggableRange
 
-      this._flick.setMin(-top)
-      this._flick.setMax(-bottom)
-      this._flick.fetFriction(nextProps.friction)
+      this._flick.setMin(top)
+      this._flick.setMax(bottom)
+      this._flick.setFriction(nextProps.friction)
     }
   }
 
@@ -152,14 +153,16 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     if (this._animatedValueListener != null) {
-      this.props.animatedValue.removeListener(this._animatedValueListener)
+      this._animatedValueListener()
     }
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
+    const animatedValue = this.props.animatedValue.__getValue()
+
     return (
       this.props.allowDragging &&
-      this._isInsideDraggableRange(-this._animatedValueY) &&
+      this._isInsideDraggableRange(animatedValue) &&
       Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
     )
   }
@@ -169,32 +172,36 @@ class SlidingUpPanel extends React.PureComponent {
 
     const value = this.props.animatedValue.__getValue()
 
-    this._animatedValueY = value
-    this._panResponderGrant = true
-    this.props.onDragStart(-this._animatedValueY)
+    this._initialDragPosition = value
+    this.props.onDragStart(value)
   }
 
   _onPanResponderMove(evt, gestureState) {
-    this.props.animatedValue.setValue(this._animatedValueY + gestureState.dy)
+    this.props.animatedValue.setValue(
+      this._initialDragPosition - gestureState.dy
+    )
   }
 
   // Trigger when you release your finger
   _onPanResponderRelease(evt, gestureState) {
-    this._panResponderGrant = false
+    const animatedValue = this.props.animatedValue.__getValue()
 
-    if (!this._isInsideDraggableRange(-this._animatedValueY)) {
+    if (!this._isInsideDraggableRange(animatedValue)) {
       return
     }
 
-    this.props.onDragEnd(-this._animatedValueY)
+    this._initialDragPosition = animatedValue
+    this.props.onDragEnd(animatedValue)
 
     if (!this.props.allowMomentum || this._flick.isActive()) {
       return
     }
 
     if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
-      const fromValue = this.props.animatedValue.__getValue()
-      this._flick.start({ velocity: gestureState.vy, fromValue })
+      this._flick.start({
+        velocity: gestureState.vy,
+        fromValue: animatedValue,
+      })
     }
   }
 
@@ -203,11 +210,8 @@ class SlidingUpPanel extends React.PureComponent {
     //
   }
 
-  _onDrag({ value }) {
-    // If the animation is triggered from outside
-    if (!this._panResponderGrant) {
-      this._animatedValueY = value
-    }
+  _onDrag(value) {
+    this.props.animatedValue.setValue(value)
 
     const isAtBottom = this._isAtBottom(value)
 
@@ -221,7 +225,7 @@ class SlidingUpPanel extends React.PureComponent {
 
     if (isAtBottom) {
       this._backdrop.setNativeProps({ pointerEvents: 'none' })
-    } else if (!this._isAtBottom(this._animatedValueY)) {
+    } else if (!this._isAtBottom(this._initialDragPosition)) {
       this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
     }
   }
@@ -243,9 +247,14 @@ class SlidingUpPanel extends React.PureComponent {
   _onKeyboardHiden() {
     this._storeKeyboardPosition(0)
 
+    const animatedValue = this.props.animatedValue.__getValue()
+
     // Restore last position
-    if (this._lastPosition != null && !this._isAtBottom(this._animatedValueY)) {
-      this.show(this._lastPosition)
+    if (this._lastPosition != null && !this._isAtBottom(animatedValue)) {
+      Animated.timing(this.props.animatedValue, {
+        toValue: this._lastPosition,
+        duration: KEYBOARD_MOVING_DURATION,
+      }).start()
     }
 
     this._lastPosition = null
@@ -258,29 +267,15 @@ class SlidingUpPanel extends React.PureComponent {
 
   _isAtBottom(value) {
     const { bottom } = this.props.draggableRange
-    return value >= -bottom
+    return value <= bottom
   }
 
   _triggerAnimation(options = {}) {
-    this._flick.setActive(true)
+    const animatedValue = this.props.animatedValue.__getValue()
+    const remainingDistance = animatedValue - options.toValue
+    const velocity = options.initialVelocity || remainingDistance / DETAL_TIME
 
-    const {
-      toValue,
-      easing,
-      onAnimationEnd = () => {},
-      duration = DEFAULT_SLIDING_DURATION,
-    } = options
-
-    const animation = Animated.timing(this.props.animatedValue, {
-      duration,
-      easing,
-      toValue: -Math.abs(toValue),
-    })
-
-    animation.start(({ finished }) => {
-      this._flick.setActive(false)
-      onAnimationEnd(finished)
-    })
+    this._flick.start({ fromValue: animatedValue, velocity })
   }
 
   _storeKeyboardPosition(value) {
@@ -295,13 +290,14 @@ class SlidingUpPanel extends React.PureComponent {
     const { top, bottom } = this.props.draggableRange
 
     const backdropOpacity = this.props.animatedValue.interpolate({
-      inputRange: [-top, -bottom],
-      outputRange: [this.props.backdropOpacity, 0],
+      inputRange: [bottom, top],
+      outputRange: [0, this.props.backdropOpacity],
       extrapolate: 'clamp',
     })
 
-    // Initial pointer events
-    const pointerEvents = !this._isAtBottom(this._animatedValueY)
+    // This is initial pointer events. Since the pointer events
+    // will keep changing when the panel moving
+    const pointerEvents = !this._isAtBottom(this._initialDragPosition)
       ? 'box-only'
       : 'none'
 
@@ -322,8 +318,8 @@ class SlidingUpPanel extends React.PureComponent {
     const height = this.props.height
 
     const translateY = this.props.animatedValue.interpolate({
-      inputRange: [-top, -bottom],
-      outputRange: [-top, -bottom],
+      inputRange: [bottom, top],
+      outputRange: [-bottom, -top],
       extrapolate: 'clamp',
     })
 
@@ -332,7 +328,7 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      { height, top: visibleHeight, bottom: 0 },
+      { height, top: visibleHeight },
     ]
 
     if (typeof this.props.children === 'function') {
@@ -388,14 +384,18 @@ class SlidingUpPanel extends React.PureComponent {
 
     const { y } = await measureElement(node)
     const extraMargin = options.keyboardExtraMargin || EXTRA_MARGIN
+    const keyboardActualPos = this._keyboardYPosition - extraMargin
 
-    if (y > this._keyboardYPosition - extraMargin) {
-      const animatedValue = this.props.animatedValue.__getValue()
-      const fromNodeToKeyboard = y - (this._keyboardYPosition - extraMargin)
-      const transitionDistance = -animatedValue + fromNodeToKeyboard
+    if (y > keyboardActualPos) {
+      this._lastPosition = this.props.animatedValue.__getValue()
 
-      this._lastPosition = animatedValue
-      this.show(transitionDistance)
+      const fromKeyboardToElement = y - keyboardActualPos
+      const transitionDistance = this._lastPosition + fromKeyboardToElement
+
+      Animated.timing(this.props.animatedValue, {
+        toValue: transitionDistance,
+        duration: KEYBOARD_MOVING_DURATION,
+      }).start()
     }
   }
 }

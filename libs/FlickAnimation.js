@@ -6,61 +6,35 @@ const density = PixelRatio.get()
 const TIME_CONTANT = 325
 
 export default class FlickAnimation {
-  constructor(animation, configs) {
+  _listeners = []
+
+  constructor(configs) {
+    this._scrollTo = this._scrollTo.bind(this)
+    this._updateValue = this._updateValue.bind(this)
     this.isActive = this.isActive.bind(this)
     this.setActive = this.setActive.bind(this)
+    this.setFriction = this.setFriction.bind(this)
     this.setMax = this.setMax.bind(this)
     this.setMin = this.setMin.bind(this)
-    this.setFriction = this.setFriction.bind(this)
-    this.onUpdate = this.onUpdate.bind(this)
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
-    this._scroll = this._scroll.bind(this)
+    this.onUpdate = this.onUpdate.bind(this)
 
-    this._animation = animation
     this._min = configs.min
     this._max = configs.max
-    this._friction = clamp(configs.friction || 0.26, 0, 1)
+    this._friction = 1 - clamp(configs.friction, 0, 1)
   }
 
-  _scroll(toValue) {
+  _scrollTo(toValue) {
     const value = clamp(toValue, this._min, this._max)
-    this._animation.setValue(value)
+    this._listeners.forEach(listener => listener(value))
 
     if (value === this._min || value === this._max) {
       this.stop()
     }
   }
 
-  isActive() {
-    return this._active === true
-  }
-
-  setActive(value) {
-    this._active = value
-  }
-
-  setMax(value) {
-    this._max = value
-  }
-
-  setMin(value) {
-    this._min = value
-  }
-
-  setFriction(value) {
-    this._friction = value
-  }
-
-  start(config) {
-    this._active = true
-    this._startTime = Date.now()
-    this._toValue = config.fromValue
-    this._velocity = -config.velocity * density * 10
-    this._animationFrame = requestAnimationFrame(this.onUpdate)
-  }
-
-  onUpdate() {
+  _updateValue() {
     if (!this._active) {
       return
     }
@@ -72,14 +46,46 @@ export default class FlickAnimation {
       return
     }
 
-    this._toValue += delta
-    this._scroll(this._toValue)
-    this._animationFrame = requestAnimationFrame(this.onUpdate)
+    this._toValue = this._toValue + delta
+    this._animationFrame = requestAnimationFrame(this._updateValue)
+    this._scrollTo(this._toValue)
+  }
+
+  isActive() {
+    return this._active === true
+  }
+
+  setActive(value) {
+    this._active = value
+  }
+
+  setFriction(value) {
+    this._friction = 1 - value
+  }
+
+  setMax(value) {
+    this._max = value
+  }
+
+  setMin(value) {
+    this._min = value
+  }
+
+  start(config) {
+    this._active = true
+    this._startTime = Date.now()
+    this._toValue = config.fromValue
+    this._velocity = config.velocity * density * 10
+    this._animationFrame = requestAnimationFrame(this._updateValue)
   }
 
   stop() {
     this._active = false
-    this._animation.stopAnimation()
     cancelAnimationFrame(this._animationFrame)
+  }
+
+  onUpdate(listener) {
+    this._listeners.push(listener)
+    return () => this._listeners.filter(l => l !== listener)
   }
 }
