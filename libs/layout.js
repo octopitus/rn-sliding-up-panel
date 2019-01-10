@@ -1,3 +1,7 @@
 import { Dimensions } from 'react-native'
 
-export const visibleHeight = Dimensions.get('window').height
+module.exports = {
+  get visibleHeight() {
+    return Dimensions.get('window').height
+  },
+}

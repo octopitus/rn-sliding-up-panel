@@ -29,7 +29,8 @@ const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
 const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
 const KEYBOARD_MOVING_DURATION = 160
 const EXTRA_MARGIN = 75
-const DETAL_TIME = 66.3
+const DEFAULT_FRICTION = 0.1
+const DETAL_TIME = 240
 
 class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
@@ -65,7 +66,7 @@ class SlidingUpPanel extends React.PureComponent {
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
-    friction: 0.72,
+    friction: DEFAULT_FRICTION,
   }
 
   // eslint-disable-next-line react/sort-comp
