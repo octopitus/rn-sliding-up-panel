@@ -1,4 +1,6 @@
-> :collision::collision: [V2 Roadmap](https://github.com/octopitus/rn-sliding-up-panel/issues/79)
+# Important :collision::collision:
+- The [v2](https://github.com/octopitus/rn-sliding-up-panel/tree/v2) of the SlidingUpPanel is currently in late stage of development. It's published under `next` tag. See more [roadmap](https://github.com/octopitus/rn-sliding-up-panel/issues/79).
+- I recommend try out the v2 and report any issue if you found.
 
 # Sliding up panel [![npm](https://img.shields.io/npm/v/rn-sliding-up-panel.svg)](https://www.npmjs.com/package/rn-sliding-up-panel)
 
