@@ -27,10 +27,10 @@ const keyboardHideEvent = Platform.select({
 
 const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
 const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
-const KEYBOARD_MOVING_DURATION = 160
-const EXTRA_MARGIN = 75
+const KEYBOARD_TRANSITION_DURATION = 160
+const KEYBOARD_EXTRA_MARGIN = 75
 const DEFAULT_FRICTION = 0.1
-const DETAL_TIME = 240
+const DELTA_TIME = 240
 
 class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
@@ -254,7 +254,7 @@ class SlidingUpPanel extends React.PureComponent {
     if (this._lastPosition != null && !this._isAtBottom(animatedValue)) {
       Animated.timing(this.props.animatedValue, {
         toValue: this._lastPosition,
-        duration: KEYBOARD_MOVING_DURATION,
+        duration: KEYBOARD_TRANSITION_DURATION,
       }).start()
     }
 
@@ -274,7 +274,7 @@ class SlidingUpPanel extends React.PureComponent {
   _triggerAnimation(options = {}) {
     const animatedValue = this.props.animatedValue.__getValue()
     const remainingDistance = animatedValue - options.toValue
-    const velocity = options.initialVelocity || remainingDistance / DETAL_TIME
+    const velocity = options.initialVelocity || remainingDistance / DELTA_TIME
 
     this._flick.start({ fromValue: animatedValue, velocity })
   }
@@ -384,7 +384,7 @@ class SlidingUpPanel extends React.PureComponent {
     this._flick.stop()
 
     const { y } = await measureElement(node)
-    const extraMargin = options.keyboardExtraMargin || EXTRA_MARGIN
+    const extraMargin = options.keyboardExtraMargin || KEYBOARD_EXTRA_MARGIN
     const keyboardActualPos = this._keyboardYPosition - extraMargin
 
     if (y > keyboardActualPos) {
@@ -395,7 +395,7 @@ class SlidingUpPanel extends React.PureComponent {
 
       Animated.timing(this.props.animatedValue, {
         toValue: transitionDistance,
-        duration: KEYBOARD_MOVING_DURATION,
+        duration: KEYBOARD_TRANSITION_DURATION,
       }).start()
     }
   }
