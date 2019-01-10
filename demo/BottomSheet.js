@@ -1,18 +1,5 @@
-/**
- * You can make the panel renders collapsed at bottom
- * by using the startCollapsed prop.
- */
-
 import React from 'react'
-
-import {
-  AppRegistry,
-  Text,
-  View,
-  Dimensions,
-  Image,
-  Animated,
-} from 'react-native'
+import { Text, View, Dimensions, Image, Animated } from 'react-native'
 
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
@@ -110,4 +97,4 @@ class BottomSheet extends React.Component {
   }
 }
 
-AppRegistry.registerComponent('BottomSheet', () => BottomSheet)
+export default BottomSheet
