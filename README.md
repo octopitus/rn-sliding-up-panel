@@ -96,11 +96,3 @@ Move the panel to the bottom position of draggable range. **Note:** This method 
 ## scrollIntoView(node: number |  | Component | ComponentClass):
 
 Ensure an element (node) is visible within the viewable area. Eg: An element is hidden under the keyboard. **Note:** The element must be a descendant node of the panel.
-
-# Changelogs
-## 1.2.1
-- Add `startCollapsed`: Initially start the panel at bottom of draggable range.
-
-## 1.2.0
-- Accept function as children. Allow a part of content becomes drag handlers.
-- Fix issue can not interact with components underlies the panel.
