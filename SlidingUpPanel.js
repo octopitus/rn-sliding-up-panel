@@ -1,6 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import invariant from 'invariant'
 
 import {
   TextInput,
@@ -105,25 +104,16 @@ class SlidingUpPanel extends React.PureComponent {
     this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const { top, bottom } = this.props.draggableRange
+    const currentValue = this.props.animatedValue.__getValue()
 
-    // If draggableRange is represent but not the animatedValue
-    if (props.draggableRange != null && props.animatedValue == null) {
+    // If the animated value is out of bound
+    if (currentValue < bottom) {
       this.props.animatedValue.setValue(bottom)
+    } else if (currentValue > top) {
+      this.props.animatedValue.setValue(top)
     }
 
-    const animatedValue = this.props.animatedValue.__getValue()
-
-    if (__DEV__) {
-      invariant(
-        this._isInsideDraggableRange(animatedValue),
-        'Animated value is out of boundary. It should be within [%s, %s] but %s was given.',
-        top,
-        bottom,
-        animatedValue
-      )
-    }
-
-    this._initialDragPosition = animatedValue
+    this._initialDragPosition = currentValue
 
     this._flick = new FlickAnimation({
       max: top,
