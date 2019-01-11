@@ -1,6 +1,6 @@
 {
   "name": "rn-sliding-up-panel",
-  "version": "2.0.0-rc1",
+  "version": "2.0.0-rc2",
   "description": "Draggable sliding up panel implemented in React Native",
   "main": "SlidingUpPanel.js",
   "scripts": {
@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "clamp": "^1.0.1",
-    "invariant": "^2.2.4",
     "prop-types": "^15.6.0"
   },
   "devDependencies": {
