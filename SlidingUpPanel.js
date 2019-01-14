@@ -198,7 +198,14 @@ class SlidingUpPanel extends React.PureComponent {
 
   // eslint-disable-next-line class-methods-use-this, no-unused-vars
   _onPanResponderTerminate(evt, gestureState) {
-    //
+    const animatedValue = this.props.animatedValue.__getValue()
+
+    if (!this._isInsideDraggableRange(animatedValue)) {
+      return
+    }
+
+    this._initialDragPosition = animatedValue
+    this.props.onDragEnd(animatedValue)
   }
 
   _onDrag(value) {
