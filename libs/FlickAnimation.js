@@ -3,8 +3,6 @@ import clamp from 'clamp'
 
 const density = PixelRatio.get()
 
-const TIME_CONTANT = 325
-
 export default class FlickAnimation {
   _listeners = []
 
@@ -40,7 +38,7 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._velocity / (1 - this._friction)) * (1 - Math.exp(-(1 - this._friction) * elapsedTime)) // prettier-ignore
+    const delta = -(this._velocity / this._friction) * (1 - Math.exp(-this._friction * elapsedTime)) // prettier-ignore
     // const delta = -(this._friction * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
 
     if (Math.abs(delta) < 0.5) {
