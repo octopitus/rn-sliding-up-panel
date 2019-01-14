@@ -22,7 +22,7 @@ export default class FlickAnimation {
 
     this._min = configs.min
     this._max = configs.max
-    this._friction = 1 - clamp(configs.friction, 0, 1)
+    this._friction = clamp(configs.friction, 0, 1)
   }
 
   _scrollTo(toValue) {
@@ -40,7 +40,8 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._friction * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
+    const delta = -(this._velocity / (1 - this._friction)) * (1 - Math.exp(-(1 - this._friction) * elapsedTime)) // prettier-ignore
+    // const delta = -(this._friction * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
 
     if (Math.abs(delta) < 0.5) {
       return
@@ -60,7 +61,7 @@ export default class FlickAnimation {
   }
 
   setFriction(value) {
-    this._friction = 1 - value
+    this._friction = clamp(value, 0, 1)
   }
 
   setMax(value) {
