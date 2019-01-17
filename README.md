@@ -71,6 +71,7 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |backdropOpacity|number|Opacity of the backdrop when the panel is active. Default is 0.75.
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
+|allowDragging|boolean|Default `true`. Setting this to `false` to disable dragging.
 |onDragStart|(position: number) => void|Called when the panel is about to start dragging.
 |onDragEnd|(position: number) => void|Called when you release your finger.
 |children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want only a part of your content becomes the drag handler.
