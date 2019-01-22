@@ -70,7 +70,7 @@ class SlidingUpPanel extends React.PureComponent {
 
   // eslint-disable-next-line react/sort-comp
   _panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponder: () => this.props.allowDragging,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
     onPanResponderGrant: this._onPanResponderGrant.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
@@ -149,10 +149,13 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
+    if (!this.props.allowDragging) {
+      return false
+    }
+
     const animatedValue = this.props.animatedValue.__getValue()
 
     return (
-      this.props.allowDragging &&
       this._isInsideDraggableRange(animatedValue) &&
       Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
     )
