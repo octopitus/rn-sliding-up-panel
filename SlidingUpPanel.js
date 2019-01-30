@@ -168,9 +168,9 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onPanResponderMove(evt, gestureState) {
-    this.props.animatedValue.setValue(
-      this._initialDragPosition - gestureState.dy
-    )
+    const { top } = this.props.draggableRange
+    const newValue = Math.min(this._initialDragPosition - gestureState.dy, top)
+    this.props.animatedValue.setValue(newValue)
   }
 
   // Trigger when you release your finger
