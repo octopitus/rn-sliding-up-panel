@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import clamp from 'clamp'
 
 import {
   TextInput,
@@ -171,8 +172,10 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onPanResponderMove(evt, gestureState) {
-    const { top } = this.props.draggableRange
-    const newValue = Math.min(this._initialDragPosition - gestureState.dy, top)
+    const { top, bottom } = this.props.draggableRange
+    const delta = this._initialDragPosition - gestureState.dy
+    const newValue = clamp(delta, top, bottom)
+
     this.props.animatedValue.setValue(newValue)
   }
 
