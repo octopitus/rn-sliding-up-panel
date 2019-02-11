@@ -168,7 +168,7 @@ class SlidingUpPanel extends React.PureComponent {
     const value = this.props.animatedValue.__getValue()
 
     this._initialDragPosition = value
-    this.props.onDragStart(value)
+    this.props.onDragStart(value, gestureState)
   }
 
   _onPanResponderMove(evt, gestureState) {
@@ -188,7 +188,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     this._initialDragPosition = animatedValue
-    this.props.onDragEnd(animatedValue)
+    this.props.onDragEnd(animatedValue, gestureState)
 
     if (!this.props.allowMomentum || this._flick.isActive()) {
       return
@@ -211,7 +211,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     this._initialDragPosition = animatedValue
-    this.props.onDragEnd(animatedValue)
+    this.props.onDragEnd(animatedValue, gestureState)
   }
 
   _onDrag(value) {
