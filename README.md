@@ -72,9 +72,22 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
 |allowDragging|boolean|Default `true`. Setting this to `false` to disable dragging.
-|onDragStart|(position: number) => void|Called when the panel is about to start dragging.
-|onDragEnd|(position: number) => void|Called when you release your finger.
+|onDragStart|(position: number, gestureState: GestureState) => void|Called when the panel is about to start dragging.
+|onDragEnd|(position: number: gestureState: GestureState) => void|Called when you release your finger.
 |children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want only a part of your content becomes the drag handler.
+
+A `gestureState` object has the following:
+
+- `stateID` - ID of the gestureState - persisted as long as there at least one touch on screen
+- `moveX` - the latest screen coordinates of the recently-moved touch
+- `moveY` - the latest screen coordinates of the recently-moved touch
+- `x0` - the screen coordinates of the responder grant
+- `y0` - the screen coordinates of the responder grant
+- `dx` - accumulated distance of the gesture since the touch started
+- `dy` - accumulated distance of the gesture since the touch started
+- `vx` - current velocity of the gesture
+- `vy` - current velocity of the gesture
+- `numberActiveTouches` - Number of touches currently on screen
 
 **Notes**:
 - Except children, all other properties are optional.
