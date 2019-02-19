@@ -38,8 +38,7 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._velocity / this._friction) * (1 - Math.exp(-this._friction * elapsedTime)) // prettier-ignore
-    // const delta = -(this._friction * this._velocity) * Math.exp(-elapsedTime / TIME_CONTANT) // prettier-ignore
+    const delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / 360) // prettier-ignore
 
     if (Math.abs(delta) < 0.5) {
       return
