@@ -1,7 +1,3 @@
-# Important :collision::collision:
-- The [v2](https://github.com/octopitus/rn-sliding-up-panel/tree/v2) of the SlidingUpPanel is currently in late stage of development. It's published under `next` tag. See more [roadmap](https://github.com/octopitus/rn-sliding-up-panel/issues/79).
-- I recommend try out the v2 and report any issue if you found.
-
 # Sliding up panel [![npm](https://img.shields.io/npm/v/rn-sliding-up-panel.svg)](https://www.npmjs.com/package/rn-sliding-up-panel)
 
 React Native draggable sliding up panel purly implemented in Javascript. Inspired by [AndroidSlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel). Works nicely on both iOS and Android.
@@ -11,15 +7,18 @@ React Native draggable sliding up panel purly implemented in Javascript. Inspire
 # Dependencies
 
   - React >= 16.
-  - `rn-sliding-up-panel` was built with React Native version 0.47 but it may work with older versions since this is pure Javascript.
+  - `rn-sliding-up-panel` is built with React Native 0.47 but it may work with older versions since this is pure Javascript.
 
 # Installation
-
-    npm install --save rn-sliding-up-panel
+  ```bash
+  npm install --save rn-sliding-up-panel
+  ```
 
 or if you are using [yarn](http://yarnpkg.com)
 
-    yarn add rn-sliding-up-panel
+  ```bash
+  yarn add rn-sliding-up-panel
+  ```
 
 # Example
 
@@ -66,7 +65,7 @@ class MyComponent extends React.Component {
 animatedValue|Animated.Value|An **Animated.Value** number between the top and bottom of draggable range. This number represents the position of the panel. If you update this prop, the panel will correspondingly update to the frame at that progress value. Default to **Animated.Value(0)** (Hidden at bottom of screen).
 |minimumVelocityThreshold|number| Velocity threshold in **pixel/s** to trigger the fling animation after you release finger. Default is 0.1.
 |minimumDistanceThreshold|number| Distance threshold in **pixel** (virtual, not physical) to trigger the fling animation after you release finger. Default is 0.24.
-|height|number|Height of panel. Default to visible height of device.
+|height|number|Height of panel. Typically this should equal to the top value of `draggablerange.`
 |friction|number|Determines how quickly the fling animation settles down and stops. The higher the value, the faster the velocity decreases. Default is 0.1.
 |backdropOpacity|number|Opacity of the backdrop when the panel is active. Default is 0.75.
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
@@ -76,7 +75,7 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |onDragEnd|(position: number: gestureState: GestureState) => void|Called when you release your finger.
 |children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want only a part of your content becomes the drag handler.
 
-A `gestureState` object has the following:
+A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the following:
 
 - `stateID` - ID of the gestureState - persisted as long as there at least one touch on screen
 - `moveX` - the latest screen coordinates of the recently-moved touch
@@ -109,4 +108,4 @@ Move the panel to the bottom position of draggable range. **Note:** This method 
 
 ## scrollIntoView(node: number |  | Component | ComponentClass):
 
-Ensure an element (node) is visible within the viewable area. Eg: An element is hidden under the keyboard. **Note:** The element must be a descendant node of the panel.
+Ensure an element (node) is visible within the viewable area. Eg: An element is hidden under the keyboard. **Note:** The element must be in the subtree of the panel component.
