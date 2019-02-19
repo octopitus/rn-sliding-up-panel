@@ -46,13 +46,7 @@ class BottomSheet extends React.Component {
 
   _draggedValue = new Animated.Value(120)
 
-  constructor(props) {
-    super(props)
-
-    this._renderFavoriteIcon = this._renderFavoriteIcon.bind(this)
-  }
-
-  _renderFavoriteIcon() {
+  render() {
     const { top, bottom } = this.props.draggableRange
 
     const draggedValue = this._draggedValue.interpolate({
@@ -64,17 +58,6 @@ class BottomSheet extends React.Component {
     const transform = [{ scale: draggedValue }]
 
     return (
-      <Animated.View style={[styles.favoriteIcon, { transform }]}>
-        <Image
-          source={require('./favorite_white.png')}
-          style={{ width: 32, height: 32 }}
-        />
-      </Animated.View>
-    )
-  }
-
-  render() {
-    return (
       <View style={styles.container}>
         <Text>Hello world</Text>
         <SlidingUpPanel
@@ -83,7 +66,12 @@ class BottomSheet extends React.Component {
           draggableRange={this.props.draggableRange}
           animatedValue={this._draggedValue}>
           <View style={styles.panel}>
-            {this._renderFavoriteIcon()}
+            <Animated.View style={[styles.favoriteIcon, { transform }]}>
+              <Image
+                source={require('./favorite_white.png')}
+                style={{ width: 32, height: 32 }}
+              />
+            </Animated.View>
             <View style={styles.panelHeader}>
               <Text style={{ color: '#FFF' }}>Bottom Sheet Peek</Text>
             </View>
