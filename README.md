@@ -93,7 +93,7 @@ A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the f
 
 # Methods
 
-## show(value?: number | TimingAnimationConfig):
+## show(value?: number | Object):
 
 Programmatically move panel to a given value. Accepts a number or an object that may have the following options:
 

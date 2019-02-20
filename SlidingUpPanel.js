@@ -12,6 +12,7 @@ import {
 
 import FlickAnimation from './libs/FlickAnimation'
 import measureElement from './libs/measureElement'
+import * as Constants from './libs/constants'
 import { visibleHeight } from './libs/layout'
 import styles from './libs/styles'
 
@@ -24,13 +25,6 @@ const keyboardHideEvent = Platform.select({
   android: 'keyboardDidHide',
   ios: 'keyboardWillHide',
 })
-
-const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
-const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
-const KEYBOARD_TRANSITION_DURATION = 160
-const KEYBOARD_EXTRA_MARGIN = 75
-const DEFAULT_FRICTION = 0.998
-const DELTA_TIME = 240
 
 class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
@@ -57,8 +51,8 @@ class SlidingUpPanel extends React.PureComponent {
     height: visibleHeight,
     animatedValue: new Animated.Value(0),
     draggableRange: { top: visibleHeight, bottom: 0 },
-    minimumVelocityThreshold: DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
-    minimumDistanceThreshold: DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
+    minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
+    minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     avoidKeyboard: true,
     onDragStart: () => {},
     onDragEnd: () => {},
@@ -66,7 +60,7 @@ class SlidingUpPanel extends React.PureComponent {
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
-    friction: DEFAULT_FRICTION,
+    friction: Constants.DEFAULT_FRICTION,
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -257,7 +251,7 @@ class SlidingUpPanel extends React.PureComponent {
     if (this._lastPosition != null && !this._isAtBottom(animatedValue)) {
       Animated.timing(this.props.animatedValue, {
         toValue: this._lastPosition,
-        duration: KEYBOARD_TRANSITION_DURATION,
+        duration: Constants.KEYBOARD_TRANSITION_DURATION,
       }).start()
     }
 
@@ -277,7 +271,7 @@ class SlidingUpPanel extends React.PureComponent {
   _triggerAnimation(options = {}) {
     const animatedValue = this.props.animatedValue.__getValue()
     const remainingDistance = animatedValue - options.toValue
-    const velocity = options.velocity || remainingDistance / DELTA_TIME
+    const velocity = options.velocity || remainingDistance / Constants.DELTA_TIME // prettier-ignore
 
     this._flick.start({ fromValue: animatedValue, velocity })
   }
@@ -387,7 +381,7 @@ class SlidingUpPanel extends React.PureComponent {
     this._flick.stop()
 
     const { y } = await measureElement(node)
-    const extraMargin = options.keyboardExtraMargin || KEYBOARD_EXTRA_MARGIN
+    const extraMargin = options.keyboardExtraMargin || Constants.KEYBOARD_EXTRA_MARGIN // prettier-ignore
     const keyboardActualPos = this._keyboardYPosition - extraMargin
 
     if (y > keyboardActualPos) {
@@ -398,7 +392,7 @@ class SlidingUpPanel extends React.PureComponent {
 
       Animated.timing(this.props.animatedValue, {
         toValue: transitionDistance,
-        duration: KEYBOARD_TRANSITION_DURATION,
+        duration: Constants.KEYBOARD_TRANSITION_DURATION,
       }).start()
     }
   }

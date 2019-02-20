@@ -1,11 +1,18 @@
 # Changelogs
-## 2.0.0-rc1
-- Remove `visible`, `onRequestClose` and `onDrag` props and introduce `animatedValue` (Animated.Value) propperty. This value reflects the position of the panel. Now to control panel position, you can:
-  - Get component's [ref](https://reactjs.org/docs/refs-and-the-dom.html) and call `show()` & `hide()` methods.
-  - Change the value of `animatedValue` prop using [Animated APIs](https://facebook.github.io/react-native/docs/animated#methods).
-- Expose `friction`, `minimumVelocityThreshold` and `minimumDistanceThreshold` properties.
-- Automatically react to keyboard events.
-- Support screen rotation.
+## 2.0.0
+### Breaking changes:
+* Remove the `visible` and `onRequestClose` props.  The component now will always be rendered, below the screen. Use `show()` & `hide()` to control panel position.
+
+### New features:
+* Animated value is now configurable. Means you can control how the panel appears & disappears with Animated.timing, Animated.spring, Animated.decay.
+* Expose more props to enhance effects (Initial velocity, friction, minimum velocity & distance threshold, etc...).
+* Support screen orientation.
+* Compatible with `react-native-web` ([Demo](https://codesandbox.io/s/3440ox733m))
+
+### Issues fixed:
+* The component now will automatically reacts to the keyboard events. Fixed several issues: #53, #32, #67.
+* `onDragEnd` should be fired when the pan responder is terminated: #82
+* Fix issue `height` property can not be changed: #74
 
 ## 1.2.1
 - Add `startCollapsed`: Initially start the panel at bottom of draggable range.
