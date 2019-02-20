@@ -66,7 +66,7 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |minimumVelocityThreshold|number| Velocity threshold in **pixel/s** to trigger the fling animation after you release finger. Default is 0.1.
 |minimumDistanceThreshold|number| Distance threshold in **pixel** (virtual, not physical) to trigger the fling animation after you release finger. Default is 0.24.
 |height|number|Height of panel. Typically this should equal to the top value of `draggablerange.`
-|friction|number|Determines how quickly the fling animation settles down and stops. The higher the value, the faster the velocity decreases. Default is 0.1.
+|friction|number|Determines how quickly the fling animation settles down and stops. The higher the value, the faster the velocity decreases. Default is 0.998.
 |backdropOpacity|number|Opacity of the backdrop when the panel is active. Default is 0.75.
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
@@ -98,7 +98,7 @@ A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the f
 Programmatically move panel to a given value. Accepts a number or an object that may have the following options:
 
 - **toValue**: The value that the panel will move to.
-- **initialVelocity**: Initial velocity of the animation.
+- **velocity**: Initial velocity of the animation.
 
 **Note:** Calling `show()` without any parameter will showmove the panel to top position (of draggableRange).
 
