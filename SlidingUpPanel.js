@@ -109,6 +109,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     this._initialDragPosition = currentValue
+    this._backdropPointerEvents = this._isAtBottom(currentValue) ? 'none' : 'box-only' // prettier-ignore
 
     this._flick = new FlickAnimation({
       max: top,
@@ -116,7 +117,13 @@ class SlidingUpPanel extends React.PureComponent {
       friction: this.props.friction,
     })
 
-    this._animatedValueListener = this._flick.onUpdate(this._onDrag.bind(this))
+    this._flickAnimationListener = this._flick.onUpdate(value => {
+      this.props.animatedValue.setValue(value)
+    })
+
+    this._animatedValueListener = this.props.animatedValue.addListener(
+      this._onAnimatedValueChange.bind(this)
+    )
   }
 
   componentWillReceiveProps(nextProps) {
@@ -139,7 +146,11 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     if (this._animatedValueListener != null) {
-      this._animatedValueListener()
+      this.props.animatedValue.removeListener(this._animatedValueListener)
+    }
+
+    if (this._flickAnimationListener != null) {
+      this._flickAnimationListener()
     }
   }
 
@@ -208,9 +219,7 @@ class SlidingUpPanel extends React.PureComponent {
     this.props.onDragEnd(animatedValue, gestureState)
   }
 
-  _onDrag(value) {
-    this.props.animatedValue.setValue(value)
-
+  _onAnimatedValueChange({ value }) {
     const isAtBottom = this._isAtBottom(value)
 
     if (isAtBottom) {
@@ -221,9 +230,15 @@ class SlidingUpPanel extends React.PureComponent {
       return
     }
 
-    if (isAtBottom) {
+    // @TODO: Find a better way to update pointer events when animated value changed
+
+    if (isAtBottom && this._backdropPointerEvents === 'box-only') {
+      this._backdropPointerEvents = 'none'
       this._backdrop.setNativeProps({ pointerEvents: 'none' })
-    } else if (!this._isAtBottom(this._initialDragPosition)) {
+    }
+
+    if (!isAtBottom && this._backdropPointerEvents === 'none') {
+      this._backdropPointerEvents = 'box-only'
       this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
     }
   }
@@ -293,16 +308,10 @@ class SlidingUpPanel extends React.PureComponent {
       extrapolate: 'clamp',
     })
 
-    // This is initial pointer events. Since the pointer events
-    // will keep changing when the panel moving
-    const pointerEvents = !this._isAtBottom(this._initialDragPosition)
-      ? 'box-only'
-      : 'none'
-
     return (
       <Animated.View
         key="backdrop"
-        pointerEvents={pointerEvents}
+        pointerEvents={this._backdropPointerEvents}
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
         onTouchEnd={() => this.hide()}
