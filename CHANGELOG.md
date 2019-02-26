@@ -1,4 +1,7 @@
 # Changelogs
+## 2.0.1
+* Upgrade dependencies to fix the vulnerability of lodash.
+
 ## 2.0.0
 ### Breaking changes:
 * Remove the `visible` and `onRequestClose` props.  The component now will always be rendered, below the screen. Use `show()` & `hide()` to control panel position.
