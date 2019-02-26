@@ -1,251 +1,298 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Animated, PanResponder, Platform } from 'react-native'
-
 import clamp from 'clamp'
 
+import {
+  TextInput,
+  Keyboard,
+  Animated,
+  PanResponder,
+  Platform,
+} from 'react-native'
+
 import FlickAnimation from './libs/FlickAnimation'
+import measureElement from './libs/measureElement'
+import * as Constants from './libs/constants'
 import { visibleHeight } from './libs/layout'
 import styles from './libs/styles'
 
-const deprecated = (condition, message) => condition && console.warn(message)
+const keyboardShowEvent = Platform.select({
+  android: 'keyboardDidShow',
+  ios: 'keyboardWillShow',
+})
 
-const DEFAULT_MINIMUM_VELOCITY_THRESHOLD = 0.1
+const keyboardHideEvent = Platform.select({
+  android: 'keyboardDidHide',
+  ios: 'keyboardWillHide',
+})
 
-const DEFAULT_MINIMUM_DISTANCE_THRESHOLD = 0.24
-
-const DEFAULT_SLIDING_DURATION = 240
-
-class SlidingUpPanel extends React.Component {
+class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
-    visible: PropTypes.bool,
     height: PropTypes.number,
+    animatedValue: PropTypes.instanceOf(Animated.Value),
     draggableRange: PropTypes.shape({
       top: PropTypes.number,
       bottom: PropTypes.number,
     }),
-    onDrag: PropTypes.func,
+    minimumVelocityThreshold: PropTypes.number,
+    minimumDistanceThreshold: PropTypes.number,
+    avoidKeyboard: PropTypes.bool,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
-    onRequestClose: PropTypes.func,
-    startCollapsed: PropTypes.bool,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
-    contentStyle: PropTypes.any,
+    friction: PropTypes.number,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
   }
 
   static defaultProps = {
-    visible: false,
     height: visibleHeight,
+    animatedValue: new Animated.Value(0),
     draggableRange: { top: visibleHeight, bottom: 0 },
-    minimumVelocityThreshold: DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
-    minimumDistanceThreshold: DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
-    onDrag: () => {},
+    minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
+    minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
+    avoidKeyboard: true,
     onDragStart: () => {},
     onDragEnd: () => {},
-    onRequestClose: () => {},
     allowMomentum: true,
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
+    friction: Constants.DEFAULT_FRICTION,
   }
+
+  // eslint-disable-next-line react/sort-comp
+  _panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => this.props.allowDragging,
+    onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
+    onPanResponderGrant: this._onPanResponderGrant.bind(this),
+    onPanResponderMove: this._onPanResponderMove.bind(this),
+    onPanResponderRelease: this._onPanResponderRelease.bind(this),
+    onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
+    onShouldBlockNativeResponder: () => false,
+    onPanResponderTerminationRequest: () => false,
+  })
+
+  _keyboardShowListener = Keyboard.addListener(
+    keyboardShowEvent,
+    this._onKeyboardShown.bind(this)
+  )
+
+  _keyboardHideListener = Keyboard.addListener(
+    keyboardHideEvent,
+    this._onKeyboardHiden.bind(this)
+  )
 
   constructor(props) {
     super(props)
 
-    this._onDrag = this._onDrag.bind(this)
-    this._renderContent = this._renderContent.bind(this)
-    this._renderBackdrop = this._renderBackdrop.bind(this)
+    this._storeKeyboardPosition = this._storeKeyboardPosition.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
     this._triggerAnimation = this._triggerAnimation.bind(this)
+    this._renderContent = this._renderContent.bind(this)
+    this._renderBackdrop = this._renderBackdrop.bind(this)
 
-    this.transitionTo = this.transitionTo.bind(this)
+    this.show = this.show.bind(this)
+    this.hide = this.hide.bind(this)
+    this.scrollIntoView = this.scrollIntoView.bind(this)
 
-    this.state = {
-      visible: props.visible,
+    const { top, bottom } = this.props.draggableRange
+    const currentValue = this.props.animatedValue.__getValue()
+
+    // If the animated value is out of bound
+    if (currentValue < bottom) {
+      this.props.animatedValue.setValue(bottom)
+    } else if (currentValue > top) {
+      this.props.animatedValue.setValue(top)
     }
 
-    if (__DEV__) {
-      deprecated(
-        props.contentStyle,
-        'SlidingUpPanel#contentStyle is deprecated. ' +
-          'You should wrap your content inside a View.'
-      )
-    }
+    this._initialDragPosition = currentValue
+    this._backdropPointerEvents = this._isAtBottom(currentValue) ? 'none' : 'box-only' // prettier-ignore
 
-    const { top, bottom } = props.draggableRange
-    const collapsedPosition = this.props.startCollapsed ? -bottom : -top
-
-    this._animatedValueY = this.state.visible ? collapsedPosition : -bottom
-    this._translateYAnimation = new Animated.Value(this._animatedValueY)
-    this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
-
-    this._panResponder = PanResponder.create({
-      onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-      onPanResponderGrant: this._onPanResponderGrant.bind(this),
-      onPanResponderMove: this._onPanResponderMove.bind(this),
-      onPanResponderRelease: this._onPanResponderRelease.bind(this),
-      onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-      onPanResponderTerminationRequest: () => false,
+    this._flick = new FlickAnimation({
+      max: top,
+      min: bottom,
+      friction: this.props.friction,
     })
 
-    this._backdrop = null
-    this._isAtBottom = !props.visible
-    this._requestCloseTriggered = false
+    this._flickAnimationListener = this._flick.onUpdate(value => {
+      this.props.animatedValue.setValue(value)
+    })
 
-    this._translateYAnimation.addListener(this._onDrag)
+    this._animatedValueListener = this.props.animatedValue.addListener(
+      this._onAnimatedValueChange.bind(this)
+    )
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.visible && !this.props.visible) {
-      this._requestCloseTriggered = false
-
-      this.setState({ visible: true }, () => {
-        this.transitionTo(-this.props.draggableRange.top)
-      })
-      return
-    }
-
-    const { bottom } = this.props.draggableRange
-
     if (
-      !nextProps.visible &&
-      this.props.visible &&
-      -this._animatedValueY > bottom
-    ) {
-      this._requestCloseTriggered = true
-
-      this.transitionTo({
-        toValue: -bottom,
-        onAnimationEnd: () => this.setState({ visible: false }),
-      })
-      return
-    }
-
-    if (
+      nextProps.friction !== this.props.friction ||
       nextProps.draggableRange.top !== this.props.draggableRange.top ||
       nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
       const { top, bottom } = nextProps.draggableRange
-      this._flick = new FlickAnimation(this._translateYAnimation, -top, -bottom)
+
+      this._flick.setMin(top)
+      this._flick.setMax(bottom)
+      this._flick.setFriction(nextProps.friction)
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._keyboardShowListener != null) {
+      this._keyboardShowListener.remove()
+    }
+
+    if (this._animatedValueListener != null) {
+      this.props.animatedValue.removeListener(this._animatedValueListener)
+    }
+
+    if (this._flickAnimationListener != null) {
+      this._flickAnimationListener()
     }
   }
 
   _onMoveShouldSetPanResponder(evt, gestureState) {
+    if (!this.props.allowDragging) {
+      return false
+    }
+
+    const animatedValue = this.props.animatedValue.__getValue()
+
     return (
-      this.props.allowDragging &&
-      this._isInsideDraggableRange() &&
+      this._isInsideDraggableRange(animatedValue) &&
       Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
     )
   }
 
-  // eslint-disable-next-line no-unused-vars
   _onPanResponderGrant(evt, gestureState) {
     this._flick.stop()
-    this._translateYAnimation.setOffset(this._animatedValueY)
-    this._translateYAnimation.setValue(0)
-    this.props.onDragStart(-this._animatedValueY)
+
+    const value = this.props.animatedValue.__getValue()
+
+    this._initialDragPosition = value
+    this.props.onDragStart(value, gestureState)
   }
 
   _onPanResponderMove(evt, gestureState) {
-    if (!this._isInsideDraggableRange()) {
-      return
-    }
+    const { top, bottom } = this.props.draggableRange
+    const delta = this._initialDragPosition - gestureState.dy
+    const newValue = clamp(delta, top, bottom)
 
-    this._translateYAnimation.setValue(gestureState.dy)
+    this.props.animatedValue.setValue(newValue)
   }
 
   // Trigger when you release your finger
   _onPanResponderRelease(evt, gestureState) {
-    if (!this._isInsideDraggableRange()) {
+    const animatedValue = this.props.animatedValue.__getValue()
+
+    if (!this._isInsideDraggableRange(animatedValue)) {
       return
     }
 
-    this._translateYAnimation.flattenOffset()
-    const cancelFlick = this.props.onDragEnd(-this._animatedValueY)
+    this._initialDragPosition = animatedValue
+    this.props.onDragEnd(animatedValue, gestureState)
 
-    if (!this.props.allowMomentum || cancelFlick) {
+    if (!this.props.allowMomentum || this._flick.isActive()) {
       return
     }
 
     if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
       this._flick.start({
         velocity: gestureState.vy,
-        fromValue: this._animatedValueY,
+        fromValue: animatedValue,
       })
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line class-methods-use-this, no-unused-vars
   _onPanResponderTerminate(evt, gestureState) {
-    //
-  }
+    const animatedValue = this.props.animatedValue.__getValue()
 
-  _isInsideDraggableRange() {
-    const { top, bottom } = this.props.draggableRange
-    return this._animatedValueY >= -top && this._animatedValueY <= -bottom
-  }
-
-  _onDrag({ value }) {
-    const { top, bottom } = this.props.draggableRange
-
-    if (value >= -bottom) {
-      this._isAtBottom = true
-
-      if (this._backdrop != null) {
-        this._backdrop.setNativeProps({ pointerEvents: 'none' })
-      }
-
-      if (!this._requestCloseTriggered) {
-        this.props.onRequestClose()
-      }
+    if (!this._isInsideDraggableRange(animatedValue)) {
       return
     }
 
-    if (this._isAtBottom) {
-      this._isAtBottom = false
-
-      if (this._backdrop != null) {
-        this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
-      }
-    }
-
-    this._animatedValueY = clamp(value, -top, -bottom)
-    this.props.onDrag(-this._animatedValueY)
+    this._initialDragPosition = animatedValue
+    this.props.onDragEnd(animatedValue, gestureState)
   }
 
-  transitionTo(mayBeValueOrOptions) {
-    if (typeof mayBeValueOrOptions === 'object') {
-      return this._triggerAnimation(mayBeValueOrOptions)
+  _onAnimatedValueChange({ value }) {
+    const isAtBottom = this._isAtBottom(value)
+
+    if (isAtBottom) {
+      Keyboard.dismiss()
     }
 
-    return this._triggerAnimation({ toValue: mayBeValueOrOptions })
+    if (this._backdrop == null) {
+      return
+    }
+
+    // @TODO: Find a better way to update pointer events when animated value changed
+
+    if (isAtBottom && this._backdropPointerEvents === 'box-only') {
+      this._backdropPointerEvents = 'none'
+      this._backdrop.setNativeProps({ pointerEvents: 'none' })
+    }
+
+    if (!isAtBottom && this._backdropPointerEvents === 'none') {
+      this._backdropPointerEvents = 'box-only'
+      this._backdrop.setNativeProps({ pointerEvents: 'box-only' })
+    }
+  }
+
+  _onKeyboardShown(event) {
+    if (!this.props.avoidKeyboard) {
+      return
+    }
+
+    this._storeKeyboardPosition(event.endCoordinates.screenY)
+
+    const node = TextInput.State.currentlyFocusedField()
+
+    if (node != null) {
+      this.scrollIntoView(node)
+    }
+  }
+
+  _onKeyboardHiden() {
+    this._storeKeyboardPosition(0)
+
+    const animatedValue = this.props.animatedValue.__getValue()
+
+    // Restore last position
+    if (this._lastPosition != null && !this._isAtBottom(animatedValue)) {
+      Animated.timing(this.props.animatedValue, {
+        toValue: this._lastPosition,
+        duration: Constants.KEYBOARD_TRANSITION_DURATION,
+      }).start()
+    }
+
+    this._lastPosition = null
+  }
+
+  _isInsideDraggableRange(value) {
+    const { top, bottom } = this.props.draggableRange
+    return value <= top && value >= bottom
+  }
+
+  _isAtBottom(value) {
+    const { bottom } = this.props.draggableRange
+    return value <= bottom
   }
 
   _triggerAnimation(options = {}) {
-    const {
-      toValue,
-      easing,
-      onAnimationEnd = () => {},
-      duration = DEFAULT_SLIDING_DURATION,
-    } = options
+    const animatedValue = this.props.animatedValue.__getValue()
+    const remainingDistance = animatedValue - options.toValue
+    const velocity = options.velocity || remainingDistance / Constants.DELTA_TIME // prettier-ignore
 
-    const animationConfig = {
-      duration,
-      easing,
-      toValue: -Math.abs(toValue),
-      delay: Platform.OS === 'android' ? 166.67 : undefined, // to make it looks smooth on android
-    }
+    this._flick.start({ fromValue: animatedValue, velocity })
+  }
 
-    const animation = Animated.timing(
-      this._translateYAnimation,
-      animationConfig
-    )
-
-    animation.start(onAnimationEnd)
+  _storeKeyboardPosition(value) {
+    this._keyboardYPosition = value
   }
 
   _renderBackdrop() {
@@ -255,19 +302,19 @@ class SlidingUpPanel extends React.Component {
 
     const { top, bottom } = this.props.draggableRange
 
-    const backdropOpacity = this._translateYAnimation.interpolate({
-      inputRange: [-top, -bottom],
-      outputRange: [this.props.backdropOpacity, 0],
+    const backdropOpacity = this.props.animatedValue.interpolate({
+      inputRange: [bottom, top],
+      outputRange: [0, this.props.backdropOpacity],
       extrapolate: 'clamp',
     })
 
     return (
       <Animated.View
         key="backdrop"
-        pointerEvents="box-only"
+        pointerEvents={this._backdropPointerEvents}
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
-        onTouchEnd={() => this.props.onRequestClose()}
+        onTouchEnd={() => this.hide()}
         style={[styles.backdrop, { opacity: backdropOpacity }]}
       />
     )
@@ -277,9 +324,9 @@ class SlidingUpPanel extends React.Component {
     const { top, bottom } = this.props.draggableRange
     const height = this.props.height
 
-    const translateY = this._translateYAnimation.interpolate({
-      inputRange: [-top, -bottom],
-      outputRange: [-top, -bottom],
+    const translateY = this.props.animatedValue.interpolate({
+      inputRange: [bottom, top],
+      outputRange: [-bottom, -top],
       extrapolate: 'clamp',
     })
 
@@ -288,7 +335,7 @@ class SlidingUpPanel extends React.Component {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      { height, top: visibleHeight, bottom: 0 },
+      { height, top: visibleHeight },
     ]
 
     if (typeof this.props.children === 'function') {
@@ -314,11 +361,49 @@ class SlidingUpPanel extends React.Component {
   }
 
   render() {
-    if (!this.state.visible) {
-      return null
+    return [this._renderBackdrop(), this._renderContent()]
+  }
+
+  show(mayBeValueOrOptions) {
+    if (!mayBeValueOrOptions) {
+      const { top } = this.props.draggableRange
+      return this._triggerAnimation({ toValue: top })
     }
 
-    return [this._renderBackdrop(), this._renderContent()]
+    if (typeof mayBeValueOrOptions === 'object') {
+      return this._triggerAnimation(mayBeValueOrOptions)
+    }
+
+    return this._triggerAnimation({ toValue: mayBeValueOrOptions })
+  }
+
+  hide() {
+    const { bottom } = this.props.draggableRange
+    this._triggerAnimation({ toValue: bottom })
+  }
+
+  async scrollIntoView(node, options = {}) {
+    if (!this._keyboardYPosition) {
+      return
+    }
+
+    this._flick.stop()
+
+    const { y } = await measureElement(node)
+    const extraMargin = options.keyboardExtraMargin || Constants.KEYBOARD_EXTRA_MARGIN // prettier-ignore
+    const keyboardActualPos = this._keyboardYPosition - extraMargin
+
+    if (y > keyboardActualPos) {
+      this._lastPosition = this.props.animatedValue.__getValue()
+
+      const fromKeyboardToElement = y - keyboardActualPos
+      const transitionDistance = this._lastPosition + fromKeyboardToElement
+
+      Animated.timing(this.props.animatedValue, {
+        toValue: transitionDistance,
+        duration: Constants.KEYBOARD_TRANSITION_DURATION,
+      }).start()
+    }
   }
 }
 

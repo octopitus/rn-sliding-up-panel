@@ -1,0 +1,22 @@
+# Changelogs
+## 2.0.0
+### Breaking changes:
+* Remove the `visible` and `onRequestClose` props.  The component now will always be rendered, below the screen. Use `show()` & `hide()` to control panel position.
+
+### New features:
+* Animated value is now configurable. Means you can control how the panel appears & disappears with Animated.timing, Animated.spring, Animated.decay.
+* Expose more props to enhance effects (Initial velocity, friction, minimum velocity & distance threshold, etc...).
+* Support screen orientation.
+* Compatible with `react-native-web` ([Demo](https://codesandbox.io/s/3440ox733m))
+
+### Issues fixed:
+* The component now will automatically reacts to the keyboard events. Fixed several issues: #53, #32, #67.
+* `onDragEnd` should be fired when the pan responder is terminated: #82
+* Fix issue `height` property can not be changed: #74
+
+## 1.2.1
+- Add `startCollapsed`: Initially start the panel at bottom of draggable range.
+
+## 1.2.0
+- Accept function as children. Allow a part of content becomes drag handlers.
+- Fix issue can not interact with components underlies the panel.

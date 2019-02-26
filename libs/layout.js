@@ -1,9 +1,7 @@
-var {Dimensions} = require('react-native')
+import { Dimensions } from 'react-native'
 
-var layout = {
+module.exports = {
   get visibleHeight() {
     return Dimensions.get('window').height
-  }
+  },
 }
-
-module.exports = layout

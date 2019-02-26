@@ -1,4 +1,15 @@
 {
   "parser": "babel-eslint",
-  "extends": "eslint-config-octopitus"
+  "extends": "eslint-config-octopitus",
+  "rules": {
+    "react/sort-comp": [1, {
+      "order": [
+        "static-methods",
+        "lifecycle",
+        "/^_.+$/",
+        "render",
+        "everything-else"
+      ]
+    }]
+  }
 }
