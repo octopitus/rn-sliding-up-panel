@@ -56,6 +56,7 @@ class MyComponent extends React.Component {
 **More:**
 - [ScrollView insides the panel](demo/ScrollViewInsidePanel.js)
 - [Bottom sheet](demo/BottomSheet.js)
+- [Determine current position of panel](https://github.com/octopitus/rn-sliding-up-panel/issues/96#issuecomment-468992157)
 
 # Props
 

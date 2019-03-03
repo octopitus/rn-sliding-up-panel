@@ -1,15 +1,23 @@
 {
   "parser": "babel-eslint",
-  "extends": "eslint-config-octopitus",
+  "env": {
+    "react-native/react-native": true
+  },
+  "settings": {
+    "import/core-modules": [
+      "react",
+      "react-native"
+    ]
+  },
+  "extends": [ "eslint-config-airbnb" , "prettier"],
+  "plugins": ["prettier", "react-native"],
   "rules": {
-    "react/sort-comp": [1, {
-      "order": [
-        "static-methods",
-        "lifecycle",
-        "/^_.+$/",
-        "render",
-        "everything-else"
-      ]
-    }]
+    "prettier/prettier": "error",
+    "no-underscore-dangle": 0,
+    "react/destructuring-assignment": 0,
+    "react/jsx-closing-bracket-location": 0,
+    "react/jsx-filename-extension": 0,
+    "no-return-assign": 0,
+    "react/sort-comp": 0
   }
 }

@@ -1,10 +1,14 @@
-import { Component, ComponentClass } from 'react'
-import { Animated, GestureResponderHandlers, PanResponderGestureState } from 'react-native'
+import {ComponentClass} from 'react'
+import {
+  Animated,
+  GestureResponderHandlers,
+  PanResponderGestureState
+} from 'react-native'
 
 interface Props {
   height?: number;
   animatedValue?: Animated.Value;
-  draggableRange?: { top: number, bottom: number };
+  draggableRange?: {top: number, bottom: number};
   minimumVelocityThreshold?: number;
   minimumDistanceThreshold?: number;
   avoidKeyboard?: boolean;
@@ -19,8 +23,10 @@ interface Props {
     | ((dragHandlers: GestureResponderHandlers) => JSX.Element);
 }
 
-export default class SlidingUpPanel extends Component<Props> {
-  scrollIntoView(node: number | Component | ComponentClass): void
-  show(value?: number | { toValue: number, velocity: number }): void
-  hide(): void
+interface SlidingUpPanel extends ComponentClass<Props> {
+  scrollIntoView(node: number | Component | ComponentClass): void;
+  show(value?: number | {toValue: number, velocity: number}): void;
+  hide(): void;
 }
+
+export default SlidingUpPanel

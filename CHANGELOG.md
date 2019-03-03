@@ -1,4 +1,7 @@
 # Changelogs
+## 2.0.2
+* Replace eslint configs with `eslint-config-airbnb`.
+
 ## 2.0.1
 * Upgrade dependencies to fix the vulnerability of lodash.
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, TouchableOpacity, Text, ScrollView } from 'react-native'
+import {View, TouchableOpacity, Text, ScrollView} from 'react-native'
 
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
@@ -9,15 +9,15 @@ const styles = {
     zIndex: 1,
     backgroundColor: 'white',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   dragHandler: {
     alignSelf: 'stretch',
     height: 64,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ccc',
-  },
+    backgroundColor: '#ccc'
+  }
 }
 
 class ScrollViewInsidePanel extends React.Component {

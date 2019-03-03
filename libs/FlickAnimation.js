@@ -1,7 +1,7 @@
-import { PixelRatio } from 'react-native'
+import {PixelRatio} from 'react-native'
 import clamp from 'clamp'
 
-import { DELTA_TIME } from './constants'
+import {DELTA_TIME} from './constants'
 
 const density = PixelRatio.get()
 
