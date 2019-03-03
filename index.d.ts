@@ -1,4 +1,4 @@
-import {ComponentClass} from 'react'
+import React from 'react'
 import {
   Animated,
   GestureResponderHandlers,
@@ -23,10 +23,10 @@ interface Props {
     | ((dragHandlers: GestureResponderHandlers) => JSX.Element);
 }
 
-interface SlidingUpPanel extends ComponentClass<Props> {
-  scrollIntoView(node: number | Component | ComponentClass): void;
-  show(value?: number | {toValue: number, velocity: number}): void;
-  hide(): void;
+declare class SlidingUpPanel<P extends Props> extends React.Component<P, {}> {
+  public scrollIntoView(node: number | React.ComponentClass): void;
+  public show(value?: number | {toValue: number, velocity: number}): void;
+  public hide(): void;
 }
 
 export default SlidingUpPanel
