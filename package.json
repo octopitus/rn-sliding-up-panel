@@ -36,9 +36,9 @@
     "prop-types": "^15.7.2"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.14.1",
+    "@babel/core": "^7.3.4",
+    "babel-eslint": "^11.0.0-beta.0",
+    "eslint": "^5.15.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-import": "^2.16.0",
@@ -46,6 +46,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-react": "^7.12.4",
     "eslint-plugin-react-native": "^3.6.0",
+    "metro-react-native-babel-preset": "^0.53.0",
     "prettier": "^1.16.4"
   }
 }
