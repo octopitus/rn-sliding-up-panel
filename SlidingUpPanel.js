@@ -5,6 +5,7 @@ import clamp from 'clamp'
 import {
   TextInput,
   Keyboard,
+  BackHandler,
   Animated,
   PanResponder,
   Platform
@@ -37,6 +38,7 @@ class SlidingUpPanel extends React.PureComponent {
     minimumVelocityThreshold: PropTypes.number,
     minimumDistanceThreshold: PropTypes.number,
     avoidKeyboard: PropTypes.bool,
+    onBackButtonPress: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
     allowMomentum: PropTypes.bool,
@@ -83,6 +85,11 @@ class SlidingUpPanel extends React.PureComponent {
   _keyboardHideListener = Keyboard.addListener(
     keyboardHideEvent,
     this._onKeyboardHiden.bind(this)
+  )
+
+  _backButtonListener = BackHandler.addEventListener(
+    'hardwareBackPress',
+    this._onBackButtonPress.bind(this)
   )
 
   constructor(props) {
@@ -143,16 +150,24 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   componentWillUnmount() {
-    if (this._keyboardShowListener != null) {
-      this._keyboardShowListener.remove()
-    }
-
     if (this._animatedValueListener != null) {
       this.props.animatedValue.removeListener(this._animatedValueListener)
     }
 
+    if (this._keyboardShowListener != null) {
+      this._keyboardShowListener.remove()
+    }
+
+    if (this._keyboardHideListener != null) {
+      this._keyboardHideListener.remove()
+    }
+
     if (this._flickAnimationListener != null) {
-      this._flickAnimationListener()
+      this._flickAnimationListener.remove()
+    }
+
+    if (this._backButtonListener != null) {
+      this._backButtonListener.remove()
     }
   }
 
@@ -275,6 +290,22 @@ class SlidingUpPanel extends React.PureComponent {
     this._lastPosition = null
   }
 
+  _onBackButtonPress() {
+    if (this.props.onBackButtonPress) {
+      return this.props.onBackButtonPress()
+    }
+
+    const value = this.props.animatedValue.__getValue()
+
+    if (this._isAtBottom(value)) {
+      return false
+    }
+
+    this.hide()
+
+    return true
+  }
+
   _isInsideDraggableRange(value) {
     const {top, bottom} = this.props.draggableRange
     return value <= top && value >= bottom
@@ -364,10 +395,6 @@ class SlidingUpPanel extends React.PureComponent {
 
   render() {
     return [this._renderBackdrop(), this._renderContent()]
-  }
-
-  getValue() {
-    return this.props.animatedValue.__getValue()
   }
 
   show(mayBeValueOrOptions) {

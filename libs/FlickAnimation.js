@@ -81,6 +81,8 @@ export default class FlickAnimation {
 
   onUpdate(listener) {
     this._listeners.push(listener)
-    return () => this._listeners.filter(l => l !== listener)
+    return {
+      remove: () => this._listeners.filter(l => l !== listener)
+    }
   }
 }
