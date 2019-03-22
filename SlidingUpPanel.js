@@ -126,17 +126,19 @@ class SlidingUpPanel extends React.PureComponent {
     )
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentDidUpdate(prevProps) {
     if (
-      nextProps.friction !== this.props.friction ||
-      nextProps.draggableRange.top !== this.props.draggableRange.top ||
-      nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
+      prevProps.draggableRange.top !== this.props.draggableRange.top ||
+      prevProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
-      const {top, bottom} = nextProps.draggableRange
+      const {top, bottom} = this.props.draggableRange
 
       this._flick.setMin(top)
       this._flick.setMax(bottom)
-      this._flick.setFriction(nextProps.friction)
+    }
+
+    if (prevProps.friction !== this.props.friction) {
+      this._flick.setFriction(this.props.friction)
     }
   }
 
