@@ -1,4 +1,8 @@
 # Changelogs
+
+## 2.1
+- Handle Android back button behavior.
+
 ## 2.0.2
 * Replace eslint configs with `eslint-config-airbnb`.
 
