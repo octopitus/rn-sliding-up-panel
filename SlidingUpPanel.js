@@ -5,6 +5,7 @@ import clamp from 'clamp'
 import {
   TextInput,
   Keyboard,
+  BackHandler,
   Animated,
   PanResponder,
   Platform
@@ -37,6 +38,7 @@ class SlidingUpPanel extends React.PureComponent {
     minimumVelocityThreshold: PropTypes.number,
     minimumDistanceThreshold: PropTypes.number,
     avoidKeyboard: PropTypes.bool,
+    onBackButtonPress: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
     allowMomentum: PropTypes.bool,
@@ -54,6 +56,7 @@ class SlidingUpPanel extends React.PureComponent {
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     avoidKeyboard: true,
+    onBackButtonPress: () => false,
     onDragStart: () => {},
     onDragEnd: () => {},
     allowMomentum: true,
@@ -83,6 +86,11 @@ class SlidingUpPanel extends React.PureComponent {
   _keyboardHideListener = Keyboard.addListener(
     keyboardHideEvent,
     this._onKeyboardHiden.bind(this)
+  )
+
+  _backButtonListener = BackHandler.addEventListener(
+    'hardwareBackPress',
+    this._onBackButtonPress.bind(this)
   )
 
   constructor(props) {
@@ -126,31 +134,41 @@ class SlidingUpPanel extends React.PureComponent {
     )
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentDidUpdate(prevProps) {
     if (
-      nextProps.friction !== this.props.friction ||
-      nextProps.draggableRange.top !== this.props.draggableRange.top ||
-      nextProps.draggableRange.bottom !== this.props.draggableRange.bottom
+      prevProps.draggableRange.top !== this.props.draggableRange.top ||
+      prevProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
-      const {top, bottom} = nextProps.draggableRange
+      const {top, bottom} = this.props.draggableRange
 
       this._flick.setMin(top)
       this._flick.setMax(bottom)
-      this._flick.setFriction(nextProps.friction)
+    }
+
+    if (prevProps.friction !== this.props.friction) {
+      this._flick.setFriction(this.props.friction)
     }
   }
 
   componentWillUnmount() {
-    if (this._keyboardShowListener != null) {
-      this._keyboardShowListener.remove()
-    }
-
     if (this._animatedValueListener != null) {
       this.props.animatedValue.removeListener(this._animatedValueListener)
     }
 
+    if (this._keyboardShowListener != null) {
+      this._keyboardShowListener.remove()
+    }
+
+    if (this._keyboardHideListener != null) {
+      this._keyboardHideListener.remove()
+    }
+
     if (this._flickAnimationListener != null) {
-      this._flickAnimationListener()
+      this._flickAnimationListener.remove()
+    }
+
+    if (this._backButtonListener != null) {
+      this._backButtonListener.remove()
     }
   }
 
@@ -195,7 +213,7 @@ class SlidingUpPanel extends React.PureComponent {
     this._initialDragPosition = animatedValue
     this.props.onDragEnd(animatedValue, gestureState)
 
-    if (!this.props.allowMomentum || this._flick.isActive()) {
+    if (!this.props.allowMomentum || this._flick.isStarted()) {
       return
     }
 
@@ -271,6 +289,22 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     this._lastPosition = null
+  }
+
+  _onBackButtonPress() {
+    if (this.props.onBackButtonPress()) {
+      return true
+    }
+
+    const value = this.props.animatedValue.__getValue()
+
+    if (this._isAtBottom(value)) {
+      return false
+    }
+
+    this.hide()
+
+    return true
   }
 
   _isInsideDraggableRange(value) {
@@ -362,10 +396,6 @@ class SlidingUpPanel extends React.PureComponent {
 
   render() {
     return [this._renderBackdrop(), this._renderContent()]
-  }
-
-  getValue() {
-    return this.props.animatedValue.__getValue()
   }
 
   show(mayBeValueOrOptions) {
