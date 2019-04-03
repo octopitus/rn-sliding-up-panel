@@ -1,5 +1,8 @@
 # Changelogs
 
+## 2.1.1
+- Fix issue with the position of panel on some Android devices (Devices without bottom navigation bar).
+
 ## 2.1
 - Handle Android back button behavior.
 
