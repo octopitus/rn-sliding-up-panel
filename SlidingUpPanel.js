@@ -14,7 +14,7 @@ import {
 import FlickAnimation from './libs/FlickAnimation'
 import measureElement from './libs/measureElement'
 import * as Constants from './libs/constants'
-import {visibleHeight} from './libs/layout'
+import {statusBarHeight, visibleHeight} from './libs/layout'
 import styles from './libs/styles'
 
 const keyboardShowEvent = Platform.select({
@@ -50,9 +50,9 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   static defaultProps = {
-    height: visibleHeight,
+    height: visibleHeight - statusBarHeight,
     animatedValue: new Animated.Value(0),
-    draggableRange: {top: visibleHeight, bottom: 0},
+    draggableRange: {top: visibleHeight - statusBarHeight, bottom: 0},
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     avoidKeyboard: true,
@@ -355,8 +355,10 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _renderContent() {
-    const {top, bottom} = this.props.draggableRange
-    const {height} = this.props
+    const {
+      height,
+      draggableRange: {top, bottom}
+    } = this.props
 
     const translateY = this.props.animatedValue.interpolate({
       inputRange: [bottom, top],
@@ -369,7 +371,7 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      {height, top: visibleHeight}
+      {height, bottom: -height}
     ]
 
     if (typeof this.props.children === 'function') {
