@@ -41,6 +41,8 @@ class SlidingUpPanel extends React.PureComponent {
     onBackButtonPress: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
+    onMomentumStart: PropTypes.func,
+    onMomentumEnd: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
@@ -59,6 +61,8 @@ class SlidingUpPanel extends React.PureComponent {
     onBackButtonPress: () => false,
     onDragStart: () => {},
     onDragEnd: () => {},
+    onMomentumStart: () => {},
+    onMomentumEnd: () => {},
     allowMomentum: true,
     allowDragging: true,
     showBackdrop: true,
@@ -98,12 +102,12 @@ class SlidingUpPanel extends React.PureComponent {
 
     this._storeKeyboardPosition = this._storeKeyboardPosition.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
-    this._triggerAnimation = this._triggerAnimation.bind(this)
     this._renderContent = this._renderContent.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
 
     this.show = this.show.bind(this)
     this.hide = this.hide.bind(this)
+    this.triggerAnimation = this.triggerAnimation.bind(this)
     this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const {top, bottom} = this.props.draggableRange
@@ -218,9 +222,12 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
+      this.props.onMomentumStart(animatedValue)
+
       this._flick.start({
         velocity: gestureState.vy,
-        fromValue: animatedValue
+        fromValue: animatedValue,
+        onMomentumEnd: this.props.onMomentumEnd
       })
     }
   }
@@ -317,14 +324,6 @@ class SlidingUpPanel extends React.PureComponent {
     return value <= bottom
   }
 
-  _triggerAnimation(options = {}) {
-    const animatedValue = this.props.animatedValue.__getValue()
-    const remainingDistance = animatedValue - options.toValue
-    const velocity = options.velocity || remainingDistance / Constants.DELTA_TIME // prettier-ignore
-
-    this._flick.start({fromValue: animatedValue, velocity})
-  }
-
   _storeKeyboardPosition(value) {
     this._keyboardYPosition = value
   }
@@ -400,22 +399,34 @@ class SlidingUpPanel extends React.PureComponent {
     return [this._renderBackdrop(), this._renderContent()]
   }
 
+  triggerAnimation(options = {}) {
+    const animatedValue = this.props.animatedValue.__getValue()
+    const remainingDistance = animatedValue - options.toValue
+    const velocity = options.velocity || remainingDistance / Constants.DELTA_TIME // prettier-ignore
+
+    this._flick.start({
+      velocity,
+      fromValue: animatedValue,
+      onMomentumEnd: options.onAnimationEnd
+    })
+  }
+
   show(mayBeValueOrOptions) {
     if (!mayBeValueOrOptions) {
       const {top} = this.props.draggableRange
-      return this._triggerAnimation({toValue: top})
+      return this.triggerAnimation({toValue: top})
     }
 
     if (typeof mayBeValueOrOptions === 'object') {
-      return this._triggerAnimation(mayBeValueOrOptions)
+      return this.triggerAnimation(mayBeValueOrOptions)
     }
 
-    return this._triggerAnimation({toValue: mayBeValueOrOptions})
+    return this.triggerAnimation({toValue: mayBeValueOrOptions})
   }
 
   hide() {
     const {bottom} = this.props.draggableRange
-    this._triggerAnimation({toValue: bottom})
+    this.triggerAnimation({toValue: bottom})
   }
 
   async scrollIntoView(node, options = {}) {
@@ -423,6 +434,7 @@ class SlidingUpPanel extends React.PureComponent {
       return
     }
 
+    // Stop any animation when the keyboard starts showing
     this._flick.stop()
 
     const {y} = await measureElement(node)
