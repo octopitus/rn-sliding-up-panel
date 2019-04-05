@@ -13,14 +13,7 @@ export default class FlickAnimation {
     this._min = configs.min
     this._max = configs.max
     this._onMomentumEnd = emptyFunc
-  }
-
-  _emit() {
-    this._listeners.forEach(listener => listener(this._fromValue))
-
-    if (this._fromValue === this._min || this._fromValue === this._max) {
-      this.stop()
-    }
+    this._onUpdateListener = emptyFunc
   }
 
   _updateValue() {
@@ -37,8 +30,14 @@ export default class FlickAnimation {
     }
 
     this._fromValue = clamp(this._fromValue + delta, this._min, this._max)
+    this._onUpdateListener(this._fromValue)
+
+    if (this._fromValue === this._min || this._fromValue === this._max) {
+      this.stop()
+      return
+    }
+
     this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
-    this._emit(this._fromValue)
   }
 
   setMax(value) {
@@ -69,9 +68,10 @@ export default class FlickAnimation {
   }
 
   onUpdate(listener) {
-    this._listeners.push(listener)
+    this._onUpdateListener = listener
+
     return {
-      remove: () => this._listeners.filter(l => l !== listener)
+      remove: () => (this._onUpdateListener = null)
     }
   }
 }
