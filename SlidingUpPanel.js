@@ -217,7 +217,7 @@ class SlidingUpPanel extends React.PureComponent {
     this._initialDragPosition = animatedValue
     this.props.onDragEnd(animatedValue, gestureState)
 
-    if (!this.props.allowMomentum || this._flick.isStarted()) {
+    if (!this.props.allowMomentum || this._flick.started) {
       return
     }
 

@@ -10,26 +10,20 @@ export default class FlickAnimation {
   _listeners = []
 
   constructor(configs) {
-    this._scrollTo = this._scrollTo.bind(this)
-    this._updateValue = this._updateValue.bind(this)
-    this.isStarted = this.isStarted.bind(this)
-    this.setFriction = this.setFriction.bind(this)
-    this.setMax = this.setMax.bind(this)
-    this.setMin = this.setMin.bind(this)
-    this.start = this.start.bind(this)
-    this.stop = this.stop.bind(this)
-    this.onUpdate = this.onUpdate.bind(this)
-
     this._min = configs.min
     this._max = configs.max
     this._friction = clamp(configs.friction, 0, 1)
     this._onMomentumEnd = emptyFunc
   }
 
-  _scrollTo(value) {
-    this._listeners.forEach(listener => listener(value))
+  get started() {
+    return this._isStarted === true
+  }
 
-    if (value === this._min || value === this._max) {
+  _emit() {
+    this._listeners.forEach(listener => listener(this._fromValue))
+
+    if (this._fromValue === this._min || this._fromValue === this._max) {
       this.stop()
     }
   }
@@ -48,12 +42,8 @@ export default class FlickAnimation {
     }
 
     this._fromValue = clamp(this._fromValue + delta, this._min, this._max)
-    this._animationFrame = requestAnimationFrame(this._updateValue)
-    this._scrollTo(this._fromValue)
-  }
-
-  isStarted() {
-    return this._isStarted === true
+    this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
+    this._emit(this._fromValue)
   }
 
   setFriction(value) {
@@ -74,7 +64,7 @@ export default class FlickAnimation {
     this._fromValue = config.fromValue
     this._velocity = config.velocity * density * 10
     this._onMomentumEnd = config.onMomentumEnd || emptyFunc
-    this._animationFrame = requestAnimationFrame(this._updateValue)
+    this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
   }
 
   stop() {
