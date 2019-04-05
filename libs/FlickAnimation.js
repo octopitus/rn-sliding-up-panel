@@ -1,7 +1,7 @@
 import {PixelRatio} from 'react-native'
 import clamp from 'clamp'
 
-import {DELTA_TIME} from './constants'
+import {TIME_CONSTANT} from './constants'
 
 const density = PixelRatio.get()
 const emptyFunc = () => {}
@@ -30,7 +30,7 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / DELTA_TIME) // prettier-ignore
+    const delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / TIME_CONSTANT) // prettier-ignore
 
     if (Math.abs(delta) < 0.5) {
       this.stop()

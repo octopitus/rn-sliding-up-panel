@@ -402,7 +402,7 @@ class SlidingUpPanel extends React.PureComponent {
   triggerAnimation(options = {}) {
     const animatedValue = this.props.animatedValue.__getValue()
     const remainingDistance = animatedValue - options.toValue
-    const velocity = options.velocity || remainingDistance / Constants.DELTA_TIME // prettier-ignore
+    const velocity = options.velocity || remainingDistance / Constants.TIME_CONSTANT // prettier-ignore
 
     this._flick.start({
       velocity,
