@@ -25,7 +25,7 @@ export default class FlickAnimation {
   }
 
   _updateValue() {
-    if (!this._isStarted) {
+    if (!this._active) {
       return
     }
 
@@ -55,7 +55,7 @@ export default class FlickAnimation {
   }
 
   start(config) {
-    this._isStarted = true
+    this._active = true
     this._startTime = Date.now()
     this._fromValue = config.fromValue
     this._velocity = config.velocity * density * 10
@@ -64,8 +64,8 @@ export default class FlickAnimation {
   }
 
   stop() {
-    if (this._isStarted) {
-      this._isStarted = false
+    if (this._active) {
+      this._active = false
       this._onMomentumEnd(this._fromValue)
     }
 
