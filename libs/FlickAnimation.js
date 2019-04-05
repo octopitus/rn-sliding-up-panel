@@ -16,10 +16,6 @@ export default class FlickAnimation {
     this._onMomentumEnd = emptyFunc
   }
 
-  get started() {
-    return this._isStarted === true
-  }
-
   _emit() {
     this._listeners.forEach(listener => listener(this._fromValue))
 
