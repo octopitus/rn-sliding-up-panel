@@ -122,12 +122,7 @@ class SlidingUpPanel extends React.PureComponent {
 
     this._initialDragPosition = currentValue
     this._backdropPointerEvents = this._isAtBottom(currentValue) ? 'none' : 'box-only' // prettier-ignore
-
-    this._flick = new FlickAnimation({
-      max: top,
-      min: bottom,
-      friction: this.props.friction
-    })
+    this._flick = new FlickAnimation({max: top, min: bottom})
 
     this._flickAnimationListener = this._flick.onUpdate(value => {
       this.props.animatedValue.setValue(value)
@@ -147,10 +142,6 @@ class SlidingUpPanel extends React.PureComponent {
 
       this._flick.setMin(top)
       this._flick.setMax(bottom)
-    }
-
-    if (prevProps.friction !== this.props.friction) {
-      this._flick.setFriction(this.props.friction)
     }
   }
 
@@ -227,6 +218,7 @@ class SlidingUpPanel extends React.PureComponent {
       this._flick.start({
         velocity: gestureState.vy,
         fromValue: animatedValue,
+        friction: this.props.friction,
         onMomentumEnd: this.props.onMomentumEnd
       })
     }
@@ -407,6 +399,7 @@ class SlidingUpPanel extends React.PureComponent {
     this._flick.start({
       velocity,
       fromValue: animatedValue,
+      friction: this.props.friction,
       onMomentumEnd: options.onAnimationEnd
     })
   }

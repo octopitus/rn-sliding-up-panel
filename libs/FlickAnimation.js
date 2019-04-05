@@ -12,7 +12,6 @@ export default class FlickAnimation {
   constructor(configs) {
     this._min = configs.min
     this._max = configs.max
-    this._friction = clamp(configs.friction, 0, 1)
     this._onMomentumEnd = emptyFunc
   }
 
@@ -42,10 +41,6 @@ export default class FlickAnimation {
     this._emit(this._fromValue)
   }
 
-  setFriction(value) {
-    this._friction = clamp(value, 0, 1)
-  }
-
   setMax(value) {
     this._max = value
   }
@@ -54,12 +49,13 @@ export default class FlickAnimation {
     this._min = value
   }
 
-  start(config) {
+  start(configs) {
     this._active = true
     this._startTime = Date.now()
-    this._fromValue = config.fromValue
-    this._velocity = config.velocity * density * 10
-    this._onMomentumEnd = config.onMomentumEnd || emptyFunc
+    this._fromValue = configs.fromValue
+    this._friction = clamp(configs.friction, 0, 1)
+    this._velocity = configs.velocity * density * 10
+    this._onMomentumEnd = configs.onMomentumEnd || emptyFunc
     this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
   }
 
