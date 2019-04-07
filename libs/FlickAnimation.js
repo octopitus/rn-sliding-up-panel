@@ -24,15 +24,23 @@ export default class FlickAnimation {
     const elapsedTime = Date.now() - this._startTime
     const delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / TIME_CONSTANT) // prettier-ignore
 
-    if (Math.abs(delta) < 0.5) {
+    if (this._toValue == null && Math.abs(delta) < 0.5) {
       this.stop()
       return
     }
 
-    this._fromValue = clamp(this._fromValue + delta, this._min, this._max)
+    const isMovingDown = delta < 0
+    const min = !isMovingDown ? this._min : this._toValue != null ? this._toValue : this._min // prettier-ignore
+    const max = isMovingDown ? this._max : this._toValue != null ? this._toValue : this._max // prettier-ignore
+
+    this._fromValue = clamp(this._fromValue + delta, min, max)
     this._onUpdateListener(this._fromValue)
 
-    if (this._fromValue === this._min || this._fromValue === this._max) {
+    if (
+      this._fromValue === this._toValue ||
+      this._fromValue === this._min ||
+      this._fromValue === this._max
+    ) {
       this.stop()
       return
     }
@@ -51,6 +59,7 @@ export default class FlickAnimation {
   start(configs) {
     this._active = true
     this._startTime = Date.now()
+    this._toValue = configs.toValue
     this._fromValue = configs.fromValue
     this._friction = clamp(configs.friction, 0, 1)
     this._velocity = configs.velocity * density * 10
@@ -73,5 +82,16 @@ export default class FlickAnimation {
     return {
       remove: () => (this._onUpdateListener = null)
     }
+  }
+
+  predictNextPosition({fromValue, velocity, friction}) {
+    const v = velocity * density * 10
+
+    const nextValue = Array.from({length: 60}).reduce((result, _, i) => {
+      const delta = -(v / friction) * Math.exp(-(16.67 * i) / TIME_CONSTANT) // prettier-ignore
+      return result + delta
+    }, fromValue)
+
+    return clamp(nextValue, this._min, this._max)
   }
 }
