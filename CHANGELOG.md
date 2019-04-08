@@ -1,5 +1,11 @@
 # Changelogs
 
+## 2.2.0
+- Implement snapping points.
+- Implement `onMomentumDrag*` events.
+- Fix issue call `show()` or `hide()` don't slide to proper position.
+- Move `.babelrc` to `babel.config.js`.
+
 ## 2.1.1
 - Fix issue with the position of panel on some Android devices (Devices without bottom navigation bar).
 
