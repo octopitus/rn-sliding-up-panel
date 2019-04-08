@@ -3,6 +3,7 @@
 ## 2.2.0
 - Implement snapping points.
 - Implement `onMomentumDrag*` events.
+- Add Typescript definations.
 - Fix issue call `show()` or `hide()` don't slide to proper position.
 - Move `.babelrc` to `babel.config.js`.
 
