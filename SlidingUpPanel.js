@@ -123,7 +123,6 @@ class SlidingUpPanel extends React.PureComponent {
       this.props.animatedValue.setValue(top)
     }
 
-    this._initialDragPosition = currentValue
     this._backdropPointerEvents = this._isAtBottom(currentValue) ? 'none' : 'box-only' // prettier-ignore
     this._flick = new FlickAnimation({max: top, min: bottom})
 
@@ -142,9 +141,16 @@ class SlidingUpPanel extends React.PureComponent {
       prevProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
       const {top, bottom} = this.props.draggableRange
+      const animatedValue = this.props.animatedValue.__getValue()
 
-      this._flick.setMin(top)
-      this._flick.setMax(bottom)
+      this._flick.setMax(top)
+      this._flick.setMin(bottom)
+
+      // If the panel is below the new 'bottom'
+      if (animatedValue < bottom || animatedValue > top) {
+        const newValue = clamp(animatedValue, bottom, top)
+        this.props.animatedValue.setValue(newValue)
+      }
     }
   }
 
