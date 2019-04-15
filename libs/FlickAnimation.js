@@ -80,7 +80,10 @@ export default class FlickAnimation {
     this._onUpdateListener = listener
 
     return {
-      remove: () => (this._onUpdateListener = null)
+      remove: () => {
+        this._onUpdateListener = emptyFunc
+        this.stop()
+      }
     }
   }
 
