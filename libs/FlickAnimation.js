@@ -1,4 +1,4 @@
-import {PixelRatio} from 'react-native'
+import {InteractionManager, PixelRatio} from 'react-native'
 import clamp from 'clamp'
 
 import {TIME_CONSTANT} from './constants'
@@ -65,12 +65,17 @@ export default class FlickAnimation {
     this._velocity = configs.velocity * density * 10
     this._onMomentumEnd = configs.onMomentumEnd || emptyFunc
     this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
+    this._interactionHandler = InteractionManager.createInteractionHandle()
   }
 
   stop() {
     if (this._active) {
       this._active = false
       this._onMomentumEnd(this._fromValue)
+    }
+
+    if (this._interactionHandler) {
+      InteractionManager.clearInteractionHandle(this._interactionHandler)
     }
 
     cancelAnimationFrame(this._animationFrame)

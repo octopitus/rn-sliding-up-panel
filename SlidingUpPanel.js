@@ -77,7 +77,7 @@ class SlidingUpPanel extends React.PureComponent {
   _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => this.props.allowDragging,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-    onPanResponderGrant: this._onPanResponderGrant.bind(this),
+    onPanResponderStart: this._onPanResponderStart.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
     onPanResponderRelease: this._onPanResponderRelease.bind(this),
     onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
@@ -185,7 +185,7 @@ class SlidingUpPanel extends React.PureComponent {
     )
   }
 
-  _onPanResponderGrant(evt, gestureState) {
+  _onPanResponderStart(evt, gestureState) {
     this._flick.stop()
 
     const value = this.props.animatedValue.__getValue()
@@ -367,8 +367,7 @@ class SlidingUpPanel extends React.PureComponent {
       velocity,
       toValue: options.toValue,
       fromValue: animatedValue,
-      friction: this.props.friction,
-      onMomentumEnd: options.onMomentumEnd
+      friction: this.props.friction
     })
   }
 
@@ -443,25 +442,22 @@ class SlidingUpPanel extends React.PureComponent {
     return [this._renderBackdrop(), this._renderContent()]
   }
 
-  show(mayBeValueOrOptions, onMomentumEnd) {
+  show(mayBeValueOrOptions) {
     if (!mayBeValueOrOptions) {
       const {top} = this.props.draggableRange
-      return this._triggerAnimation({toValue: top, onMomentumEnd})
+      return this._triggerAnimation({toValue: top})
     }
 
     if (typeof mayBeValueOrOptions === 'object') {
-      return this._triggerAnimation({
-        ...mayBeValueOrOptions,
-        onMomentumEnd
-      })
+      return this._triggerAnimation(mayBeValueOrOptions)
     }
 
-    return this._triggerAnimation({toValue: mayBeValueOrOptions, onMomentumEnd})
+    return this._triggerAnimation({toValue: mayBeValueOrOptions})
   }
 
-  hide(onMomentumEnd) {
+  hide() {
     const {bottom} = this.props.draggableRange
-    this._triggerAnimation({toValue: bottom, onMomentumEnd})
+    this._triggerAnimation({toValue: bottom})
   }
 
   async scrollIntoView(node, options = {}) {
