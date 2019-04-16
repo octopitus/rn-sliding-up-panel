@@ -114,16 +114,12 @@ class SlidingUpPanel extends React.PureComponent {
     this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const {top, bottom} = this.props.draggableRange
-    const currentValue = this.props.animatedValue.__getValue()
+    const initialValue = clamp(this.props.animatedValue.__getValue(), bottom, top) // prettier-ignore
 
-    // If the animated value is out of bound
-    if (currentValue < bottom) {
-      this.props.animatedValue.setValue(bottom)
-    } else if (currentValue > top) {
-      this.props.animatedValue.setValue(top)
-    }
+    // Ensure the animation are within draggable range
+    this.props.animatedValue.setValue(initialValue)
 
-    this._backdropPointerEvents = this._isAtBottom(currentValue) ? 'none' : 'box-only' // prettier-ignore
+    this._backdropPointerEvents = this._isAtBottom(initialValue) ? 'none' : 'box-only' // prettier-ignore
     this._flick = new FlickAnimation({max: top, min: bottom})
 
     this._flickAnimationListener = this._flick.onUpdate(value => {
@@ -371,7 +367,8 @@ class SlidingUpPanel extends React.PureComponent {
       velocity,
       toValue: options.toValue,
       fromValue: animatedValue,
-      friction: this.props.friction
+      friction: this.props.friction,
+      onMomentumEnd: options.onMomentumEnd
     })
   }
 
@@ -446,22 +443,25 @@ class SlidingUpPanel extends React.PureComponent {
     return [this._renderBackdrop(), this._renderContent()]
   }
 
-  show(mayBeValueOrOptions) {
+  show(mayBeValueOrOptions, onMomentumEnd) {
     if (!mayBeValueOrOptions) {
       const {top} = this.props.draggableRange
-      return this._triggerAnimation({toValue: top})
+      return this._triggerAnimation({toValue: top, onMomentumEnd})
     }
 
     if (typeof mayBeValueOrOptions === 'object') {
-      return this._triggerAnimation(mayBeValueOrOptions)
+      return this._triggerAnimation({
+        ...mayBeValueOrOptions,
+        onMomentumEnd
+      })
     }
 
-    return this._triggerAnimation({toValue: mayBeValueOrOptions})
+    return this._triggerAnimation({toValue: mayBeValueOrOptions, onMomentumEnd})
   }
 
-  hide() {
+  hide(onMomentumEnd) {
     const {bottom} = this.props.draggableRange
-    this._triggerAnimation({toValue: bottom})
+    this._triggerAnimation({toValue: bottom, onMomentumEnd})
   }
 
   async scrollIntoView(node, options = {}) {
