@@ -114,7 +114,8 @@ class SlidingUpPanel extends React.PureComponent {
     this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const {top, bottom} = this.props.draggableRange
-    const initialValue = clamp(this.props.animatedValue.__getValue(), bottom, top) // prettier-ignore
+    const animatedValue = this.props.animatedValue.__getValue()
+    const initialValue = clamp(animatedValue, bottom, top)
 
     // Ensure the animation are within draggable range
     this.props.animatedValue.setValue(initialValue)

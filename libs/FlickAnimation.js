@@ -1,7 +1,7 @@
 import {InteractionManager, PixelRatio} from 'react-native'
 import clamp from 'clamp'
 
-import {TIME_CONSTANT} from './constants'
+import {TIME_CONSTANT, DELTA_THRESHOLD} from './constants'
 
 const density = PixelRatio.get()
 const emptyFunc = () => {}
@@ -22,14 +22,24 @@ export default class FlickAnimation {
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / TIME_CONSTANT) // prettier-ignore
+    let delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / TIME_CONSTANT) // prettier-ignore
 
-    if (this._toValue == null && Math.abs(delta) < 0.5) {
+    // If delta is smaller than a threshold value,
+    // and the panel is about to stop without any anchor point
+    if (this._toValue == null && Math.abs(delta) < DELTA_THRESHOLD) {
       this.stop()
       return
     }
 
     const isMovingDown = delta < 0
+
+    // Otherwise, ensure delta is alway greater than threshold value
+    if (this._toValue != null) {
+      delta = isMovingDown
+        ? Math.min(delta, -DELTA_THRESHOLD)
+        : Math.max(delta, DELTA_THRESHOLD)
+    }
+
     const min = !isMovingDown ? this._min : this._toValue != null ? this._toValue : this._min // prettier-ignore
     const max = isMovingDown ? this._max : this._toValue != null ? this._toValue : this._max // prettier-ignore
 
