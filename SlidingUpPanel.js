@@ -61,7 +61,7 @@ class SlidingUpPanel extends React.PureComponent {
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     avoidKeyboard: true,
-    onBackButtonPress: () => false,
+    onBackButtonPress: null,
     onDragStart: () => {},
     onDragEnd: () => {},
     onMomentumDragStart: () => {},
@@ -324,8 +324,8 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onBackButtonPress() {
-    if (this.props.onBackButtonPress()) {
-      return true
+    if (this.props.onBackButtonPress !== null) {
+      return this.props.onBackButtonPress()
     }
 
     const value = this.props.animatedValue.__getValue()
