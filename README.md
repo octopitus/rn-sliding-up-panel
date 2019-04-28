@@ -2,7 +2,7 @@
 
 React Native draggable sliding up panel purly implemented in Javascript. Inspired by [AndroidSlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel). Works nicely on both iOS and Android.
 
-<img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/sliding_panel_android.gif" height="460" style="display: inline-block" /><img src="https://raw.githubusercontent.com/octopitus/rn-sliding-up-panel/master/demo/bottom_sheet_demo.gif" height="460" style="display: inline-block" />
+<img src="./demo/sliding_panel.gif" height="460" style="display: inline-block" /><img src="./demo/bottom_sheet.gif" height="460" style="display: inline-block" />
 
 # Dependencies
 
@@ -62,8 +62,9 @@ class MyComponent extends React.Component {
 
 |Property|Type|Description
 |---|---|---
-|draggableRange|{top: number, bottom: number}|Boundary limits for draggable area. `top` default to visible height of device, `bottom` default to 0.
 animatedValue|Animated.Value|An **Animated.Value** number between the top and bottom of draggable range. This number represents the position of the panel. If you update this prop, the panel will correspondingly update to the frame at that progress value. Default to **Animated.Value(0)** (Hidden at bottom of screen).
+|draggableRange|{top: number, bottom: number}|Boundary limits for draggable area. `top` default to visible height of device, `bottom` default to 0.
+|snappingPoints|number[]|Must be an incremental array of number and all values must be within the `top` & `bottom` of draggableRange.
 |minimumVelocityThreshold|number| Velocity threshold in **pixel/s** to trigger the fling animation after you release finger. Default is 0.1.
 |minimumDistanceThreshold|number| Distance threshold in **pixel** (virtual, not physical) to trigger the fling animation after you release finger. Default is 0.24.
 |height|number|Height of panel. Typically this should equal to the top value of `draggablerange.`
@@ -75,6 +76,8 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |onBackButtonPress|() => boolean|By default when you press back button (Android) the panel will be closed (Move to `bottom` position of `draggableRange`). Implement this function if you want to custom the behavior. Returning `true` means the event has been handled.
 |onDragStart|(position: number, gestureState: GestureState) => void|Called when the panel is about to start dragging.
 |onDragEnd|(position: number: gestureState: GestureState) => void|Called when you release your finger.
+|onMomentumDragStart|(position: number) => void|Called when the momentum drag starts. Works exactly the same way of [ScrollView#onMomentumScrollBegin](https://facebook.github.io/react-native/docs/scrollview#onmomentumscrollbegin).
+|onMomentumDragEnd|(position: number) => void|Called when the momentum drag ends. Works exactly the same way of [ScrollView#onMomentumScrollEnd](https://facebook.github.io/react-native/docs/scrollview#onmomentumscrollend).
 |children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want only a part of your content becomes the drag handler.
 
 A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the following:
@@ -92,6 +95,8 @@ A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the f
 
 **Notes**:
 - Except children, all other properties are optional.
+- Call `show()` or `hide()`  won't trigger `onMomentum*` events.
+- If `snappingPoints` is set, the panel will always either snaps to top, bottom or a closest possible value of it.
 
 # Methods
 

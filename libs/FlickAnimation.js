@@ -1,61 +1,61 @@
-import {PixelRatio} from 'react-native'
+import {InteractionManager, PixelRatio} from 'react-native'
 import clamp from 'clamp'
 
-import {DELTA_TIME} from './constants'
+import {TIME_CONSTANT, DELTA_THRESHOLD} from './constants'
 
 const density = PixelRatio.get()
+const emptyFunc = () => {}
 
 export default class FlickAnimation {
   _listeners = []
 
   constructor(configs) {
-    this._scrollTo = this._scrollTo.bind(this)
-    this._updateValue = this._updateValue.bind(this)
-    this.isStarted = this.isStarted.bind(this)
-    this.setFriction = this.setFriction.bind(this)
-    this.setMax = this.setMax.bind(this)
-    this.setMin = this.setMin.bind(this)
-    this.start = this.start.bind(this)
-    this.stop = this.stop.bind(this)
-    this.onUpdate = this.onUpdate.bind(this)
-
     this._min = configs.min
     this._max = configs.max
-    this._friction = clamp(configs.friction, 0, 1)
-  }
-
-  _scrollTo(toValue) {
-    const value = clamp(toValue, this._min, this._max)
-    this._listeners.forEach(listener => listener(value))
-
-    if (value === this._min || value === this._max) {
-      this.stop()
-    }
+    this._onMomentumEnd = emptyFunc
+    this._onUpdateListener = emptyFunc
   }
 
   _updateValue() {
-    if (!this._isStarted) {
+    if (!this._active) {
       return
     }
 
     const elapsedTime = Date.now() - this._startTime
-    const delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / DELTA_TIME) // prettier-ignore
+    let delta = -(this._velocity / this._friction) * Math.exp(-elapsedTime / TIME_CONSTANT) // prettier-ignore
 
-    if (Math.abs(delta) < 0.5) {
+    // If delta is smaller than a threshold value,
+    // and the panel is about to stop without any anchor point
+    if (this._toValue == null && Math.abs(delta) < DELTA_THRESHOLD) {
+      this.stop()
       return
     }
 
-    this._fromValue = this._fromValue + delta
-    this._animationFrame = requestAnimationFrame(this._updateValue)
-    this._scrollTo(this._fromValue)
-  }
+    const isMovingDown = delta < 0
 
-  isStarted() {
-    return this._isStarted === true
-  }
+    // Otherwise, ensure delta is alway greater than threshold value
+    if (this._toValue != null) {
+      delta = isMovingDown
+        ? Math.min(delta, -DELTA_THRESHOLD)
+        : Math.max(delta, DELTA_THRESHOLD)
+    }
 
-  setFriction(value) {
-    this._friction = clamp(value, 0, 1)
+    const min = !isMovingDown ? this._min : this._toValue != null ? this._toValue : this._min // prettier-ignore
+    const max = isMovingDown ? this._max : this._toValue != null ? this._toValue : this._max // prettier-ignore
+
+    this._fromValue = clamp(this._fromValue + delta, min, max)
+    this._onUpdateListener(this._fromValue)
+
+    if (
+      this._fromValue === this._toValue ||
+      this._fromValue === this._min ||
+      this._fromValue === this._max
+    ) {
+      this.stop()
+      return
+    }
+
+    this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
   }
 
   setMax(value) {
@@ -66,23 +66,50 @@ export default class FlickAnimation {
     this._min = value
   }
 
-  start(config) {
-    this._isStarted = true
+  start(configs) {
+    this._active = true
     this._startTime = Date.now()
-    this._fromValue = config.fromValue
-    this._velocity = config.velocity * density * 10
-    this._animationFrame = requestAnimationFrame(this._updateValue)
+    this._toValue = configs.toValue
+    this._fromValue = configs.fromValue
+    this._friction = clamp(configs.friction, 0, 1)
+    this._velocity = configs.velocity * density * 10
+    this._onMomentumEnd = configs.onMomentumEnd || emptyFunc
+    this._animationFrame = requestAnimationFrame(this._updateValue.bind(this))
+    this._interactionHandler = InteractionManager.createInteractionHandle()
   }
 
   stop() {
-    this._isStarted = false
+    if (this._active) {
+      this._active = false
+      this._onMomentumEnd(this._fromValue)
+    }
+
+    if (this._interactionHandler) {
+      InteractionManager.clearInteractionHandle(this._interactionHandler)
+    }
+
     cancelAnimationFrame(this._animationFrame)
   }
 
   onUpdate(listener) {
-    this._listeners.push(listener)
+    this._onUpdateListener = listener
+
     return {
-      remove: () => this._listeners.filter(l => l !== listener)
+      remove: () => {
+        this._onUpdateListener = emptyFunc
+        this.stop()
+      }
     }
+  }
+
+  predictNextPosition({fromValue, velocity, friction}) {
+    const v = velocity * density * 10
+
+    const nextValue = Array.from({length: 60}).reduce((result, _, i) => {
+      const delta = -(v / friction) * Math.exp(-(16.67 * i) / TIME_CONSTANT) // prettier-ignore
+      return result + delta
+    }, fromValue)
+
+    return clamp(nextValue, this._min, this._max)
   }
 }

@@ -11,10 +11,11 @@ import {
   Platform
 } from 'react-native'
 
-import FlickAnimation from './libs/FlickAnimation'
+import closest from './libs/closest'
 import measureElement from './libs/measureElement'
-import * as Constants from './libs/constants'
+import FlickAnimation from './libs/FlickAnimation'
 import {statusBarHeight, visibleHeight} from './libs/layout'
+import * as Constants from './libs/constants'
 import styles from './libs/styles'
 
 const keyboardShowEvent = Platform.select({
@@ -35,12 +36,15 @@ class SlidingUpPanel extends React.PureComponent {
       top: PropTypes.number,
       bottom: PropTypes.number
     }),
+    snappingPoints: PropTypes.arrayOf(PropTypes.number),
     minimumVelocityThreshold: PropTypes.number,
     minimumDistanceThreshold: PropTypes.number,
     avoidKeyboard: PropTypes.bool,
     onBackButtonPress: PropTypes.func,
     onDragStart: PropTypes.func,
     onDragEnd: PropTypes.func,
+    onMomentumDragStart: PropTypes.func,
+    onMomentumDragEnd: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
@@ -53,12 +57,15 @@ class SlidingUpPanel extends React.PureComponent {
     height: visibleHeight - statusBarHeight,
     animatedValue: new Animated.Value(0),
     draggableRange: {top: visibleHeight - statusBarHeight, bottom: 0},
+    snappingPoints: [],
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
     avoidKeyboard: true,
-    onBackButtonPress: () => false,
+    onBackButtonPress: null,
     onDragStart: () => {},
     onDragEnd: () => {},
+    onMomentumDragStart: () => {},
+    onMomentumDragEnd: () => {},
     allowMomentum: true,
     allowDragging: true,
     showBackdrop: true,
@@ -70,7 +77,7 @@ class SlidingUpPanel extends React.PureComponent {
   _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => this.props.allowDragging,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-    onPanResponderGrant: this._onPanResponderGrant.bind(this),
+    onPanResponderStart: this._onPanResponderStart.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
     onPanResponderRelease: this._onPanResponderRelease.bind(this),
     onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
@@ -107,23 +114,14 @@ class SlidingUpPanel extends React.PureComponent {
     this.scrollIntoView = this.scrollIntoView.bind(this)
 
     const {top, bottom} = this.props.draggableRange
-    const currentValue = this.props.animatedValue.__getValue()
+    const animatedValue = this.props.animatedValue.__getValue()
+    const initialValue = clamp(animatedValue, bottom, top)
 
-    // If the animated value is out of bound
-    if (currentValue < bottom) {
-      this.props.animatedValue.setValue(bottom)
-    } else if (currentValue > top) {
-      this.props.animatedValue.setValue(top)
-    }
+    // Ensure the animation are within draggable range
+    this.props.animatedValue.setValue(initialValue)
 
-    this._initialDragPosition = currentValue
-    this._backdropPointerEvents = this._isAtBottom(currentValue) ? 'none' : 'box-only' // prettier-ignore
-
-    this._flick = new FlickAnimation({
-      max: top,
-      min: bottom,
-      friction: this.props.friction
-    })
+    this._backdropPointerEvents = this._isAtBottom(initialValue) ? 'none' : 'box-only' // prettier-ignore
+    this._flick = new FlickAnimation({max: top, min: bottom})
 
     this._flickAnimationListener = this._flick.onUpdate(value => {
       this.props.animatedValue.setValue(value)
@@ -140,13 +138,16 @@ class SlidingUpPanel extends React.PureComponent {
       prevProps.draggableRange.bottom !== this.props.draggableRange.bottom
     ) {
       const {top, bottom} = this.props.draggableRange
+      const animatedValue = this.props.animatedValue.__getValue()
 
-      this._flick.setMin(top)
-      this._flick.setMax(bottom)
-    }
+      this._flick.setMax(top)
+      this._flick.setMin(bottom)
 
-    if (prevProps.friction !== this.props.friction) {
-      this._flick.setFriction(this.props.friction)
+      // If the panel is below the new 'bottom'
+      if (animatedValue < bottom || animatedValue > top) {
+        const newValue = clamp(animatedValue, bottom, top)
+        this.props.animatedValue.setValue(newValue)
+      }
     }
   }
 
@@ -180,12 +181,12 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedValue = this.props.animatedValue.__getValue()
 
     return (
-      this._isInsideDraggableRange(animatedValue) &&
+      this._isInsideDraggableRange(animatedValue, gestureState) &&
       Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
     )
   }
 
-  _onPanResponderGrant(evt, gestureState) {
+  _onPanResponderStart(evt, gestureState) {
     this._flick.stop()
 
     const value = this.props.animatedValue.__getValue()
@@ -206,30 +207,62 @@ class SlidingUpPanel extends React.PureComponent {
   _onPanResponderRelease(evt, gestureState) {
     const animatedValue = this.props.animatedValue.__getValue()
 
-    if (!this._isInsideDraggableRange(animatedValue)) {
+    if (!this._isInsideDraggableRange(animatedValue, gestureState)) {
       return
     }
 
     this._initialDragPosition = animatedValue
     this.props.onDragEnd(animatedValue, gestureState)
 
-    if (!this.props.allowMomentum || this._flick.isStarted()) {
+    if (!this.props.allowMomentum) {
+      return
+    }
+
+    if (this.props.snappingPoints.length > 0) {
+      this.props.onMomentumDragStart(animatedValue)
+
+      const {top, bottom} = this.props.draggableRange
+      const nextPoint = this._flick.predictNextPosition({
+        fromValue: animatedValue,
+        velocity: gestureState.vy,
+        friction: this.props.friction
+      })
+
+      const closestPoint = closest(nextPoint, [
+        bottom,
+        ...this.props.snappingPoints,
+        top
+      ])
+
+      const remainingDistance = animatedValue - closestPoint
+      const velocity = remainingDistance / Constants.TIME_CONSTANT
+
+      this._flick.start({
+        velocity,
+        toValue: closestPoint,
+        fromValue: animatedValue,
+        friction: this.props.friction,
+        onMomentumEnd: this.props.onMomentumDragEnd
+      })
       return
     }
 
     if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
+      this.props.onMomentumDragStart(animatedValue)
+
       this._flick.start({
         velocity: gestureState.vy,
-        fromValue: animatedValue
+        fromValue: animatedValue,
+        friction: this.props.friction,
+        onMomentumEnd: this.props.onMomentumDragEnd
       })
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this, no-unused-vars
   _onPanResponderTerminate(evt, gestureState) {
     const animatedValue = this.props.animatedValue.__getValue()
 
-    if (!this._isInsideDraggableRange(animatedValue)) {
+    if (!this._isInsideDraggableRange(animatedValue, gestureState)) {
       return
     }
 
@@ -292,8 +325,8 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onBackButtonPress() {
-    if (this.props.onBackButtonPress()) {
-      return true
+    if (this.props.onBackButtonPress !== null) {
+      return this.props.onBackButtonPress()
     }
 
     const value = this.props.animatedValue.__getValue()
@@ -307,9 +340,14 @@ class SlidingUpPanel extends React.PureComponent {
     return true
   }
 
-  _isInsideDraggableRange(value) {
+  _isInsideDraggableRange(value, gestureState) {
     const {top, bottom} = this.props.draggableRange
-    return value <= top && value >= bottom
+
+    if (gestureState.dy > 0) {
+      return value > bottom
+    }
+
+    return value < top
   }
 
   _isAtBottom(value) {
@@ -317,16 +355,21 @@ class SlidingUpPanel extends React.PureComponent {
     return value <= bottom
   }
 
+  _storeKeyboardPosition(value) {
+    this._keyboardYPosition = value
+  }
+
   _triggerAnimation(options = {}) {
     const animatedValue = this.props.animatedValue.__getValue()
     const remainingDistance = animatedValue - options.toValue
-    const velocity = options.velocity || remainingDistance / Constants.DELTA_TIME // prettier-ignore
+    const velocity = options.velocity || remainingDistance / Constants.TIME_CONSTANT // prettier-ignore
 
-    this._flick.start({fromValue: animatedValue, velocity})
-  }
-
-  _storeKeyboardPosition(value) {
-    this._keyboardYPosition = value
+    this._flick.start({
+      velocity,
+      toValue: options.toValue,
+      fromValue: animatedValue,
+      friction: this.props.friction
+    })
   }
 
   _renderBackdrop() {
@@ -423,6 +466,7 @@ class SlidingUpPanel extends React.PureComponent {
       return
     }
 
+    // Stop any animation when the keyboard starts showing
     this._flick.stop()
 
     const {y} = await measureElement(node)
