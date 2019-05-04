@@ -276,6 +276,7 @@ class SlidingUpPanel extends React.PureComponent {
     const isAtBottom = this._isAtBottom(value)
 
     if (isAtBottom) {
+      this.props.onClose();
       Keyboard.dismiss()
     }
 
@@ -286,7 +287,6 @@ class SlidingUpPanel extends React.PureComponent {
     // @TODO: Find a better way to update pointer events when animated value changed
 
     if (isAtBottom && this._backdropPointerEvents === 'box-only') {
-      this.props.onClose();
       this._backdropPointerEvents = 'none'
       this._backdrop.setNativeProps({pointerEvents: 'none'})
     }
