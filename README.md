@@ -78,6 +78,7 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |onDragEnd|(position: number: gestureState: GestureState) => void|Called when you release your finger.
 |onMomentumDragStart|(position: number) => void|Called when the momentum drag starts. Works exactly the same way of [ScrollView#onMomentumScrollBegin](https://facebook.github.io/react-native/docs/scrollview#onmomentumscrollbegin).
 |onMomentumDragEnd|(position: number) => void|Called when the momentum drag ends. Works exactly the same way of [ScrollView#onMomentumScrollEnd](https://facebook.github.io/react-native/docs/scrollview#onmomentumscrollend).
+|onClose|() => void|Called when the panel is closed.
 |children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want only a part of your content becomes the drag handler.
 
 A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the following:

@@ -45,6 +45,7 @@ class SlidingUpPanel extends React.PureComponent {
     onDragEnd: PropTypes.func,
     onMomentumDragStart: PropTypes.func,
     onMomentumDragEnd: PropTypes.func,
+    onClose: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
@@ -70,7 +71,8 @@ class SlidingUpPanel extends React.PureComponent {
     allowDragging: true,
     showBackdrop: true,
     backdropOpacity: 0.75,
-    friction: Constants.DEFAULT_FRICTION
+    friction: Constants.DEFAULT_FRICTION,
+    onClose: () => null,
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -284,6 +286,7 @@ class SlidingUpPanel extends React.PureComponent {
     // @TODO: Find a better way to update pointer events when animated value changed
 
     if (isAtBottom && this._backdropPointerEvents === 'box-only') {
+      this.props.onClose();
       this._backdropPointerEvents = 'none'
       this._backdrop.setNativeProps({pointerEvents: 'none'})
     }
