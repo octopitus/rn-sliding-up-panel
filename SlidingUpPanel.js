@@ -28,6 +28,8 @@ const keyboardHideEvent = Platform.select({
   ios: 'keyboardWillHide'
 })
 
+const usableHeight = visibleHeight() - statusBarHeight()
+
 class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
     height: PropTypes.number,
@@ -54,9 +56,9 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   static defaultProps = {
-    height: visibleHeight - statusBarHeight,
+    height: usableHeight,
     animatedValue: new Animated.Value(0),
-    draggableRange: {top: visibleHeight - statusBarHeight, bottom: 0},
+    draggableRange: {top: usableHeight, bottom: 0},
     snappingPoints: [],
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,

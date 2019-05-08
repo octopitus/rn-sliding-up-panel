@@ -1,10 +1,9 @@
 import {StatusBar, Dimensions} from 'react-native'
 
-module.exports = {
-  get visibleHeight() {
-    return Dimensions.get('window').height
-  },
-  get statusBarHeight() {
-    return StatusBar.currentHeight || 0
-  }
+export function visibleHeight() {
+  return Dimensions.get('window').height
+}
+
+export function statusBarHeight() {
+  return StatusBar.currentHeight || 0
 }
