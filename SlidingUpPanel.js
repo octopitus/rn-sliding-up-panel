@@ -50,7 +50,8 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
     friction: PropTypes.number,
-    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
+    contentStyle: ViewPropTypes.style
   }
 
   static defaultProps = {
@@ -414,7 +415,8 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      {height, bottom: -height}
+      {height, bottom: -height},
+      this.props.contentStyle && this.props.contentStyle
     ]
 
     if (typeof this.props.children === 'function') {
