@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import clamp from 'clamp'
+import { ViewPropTypes } from 'react-native';
 
 import {
   TextInput,
