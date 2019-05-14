@@ -22,7 +22,8 @@ interface Props {
   allowDragging?: boolean
   showBackdrop?: boolean
   backdropOpacity?: number
-  friction?: number
+  friction?: number,
+  contentStyle?: any,
   children?:
     | ReactElement
     | ((dragHandlers: GestureResponderHandlers) => ReactElement)
