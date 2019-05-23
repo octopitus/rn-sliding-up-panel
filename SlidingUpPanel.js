@@ -79,6 +79,7 @@ class SlidingUpPanel extends React.PureComponent {
   _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => this.props.allowDragging,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
+    onPanResponderGrant: this._onPanResponderGrant.bind(this),
     onPanResponderStart: this._onPanResponderStart.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
     onPanResponderRelease: this._onPanResponderRelease.bind(this),
@@ -122,6 +123,7 @@ class SlidingUpPanel extends React.PureComponent {
     // Ensure the animation are within draggable range
     this.props.animatedValue.setValue(initialValue)
 
+    this._initialDragPosition = initialValue
     this._backdropPointerEvents = this._isAtBottom(initialValue) ? 'none' : 'box-only' // prettier-ignore
     this._flick = new FlickAnimation({max: top, min: bottom})
 
@@ -188,12 +190,15 @@ class SlidingUpPanel extends React.PureComponent {
     )
   }
 
+  _onPanResponderGrant() {
+    const value = this.props.animatedValue.__getValue()
+    this._initialDragPosition = value
+  }
+
   _onPanResponderStart(evt, gestureState) {
     this._flick.stop()
 
     const value = this.props.animatedValue.__getValue()
-
-    this._initialDragPosition = value
     this.props.onDragStart(value, gestureState)
   }
 
