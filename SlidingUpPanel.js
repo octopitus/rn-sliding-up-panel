@@ -181,7 +181,8 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     const animatedValue = this.props.animatedValue.__getValue()
-
+    this._initialDragPosition = animatedValue
+    
     return (
       this._isInsideDraggableRange(animatedValue, gestureState) &&
       Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
