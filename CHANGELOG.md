@@ -1,5 +1,9 @@
 # Changelogs
 
+## 2.2.1
+- Switch exports to ES6 for webpack compatibility.
+- Fix issue of using touchable inside panel.
+
 ## 2.2.0
 - Implement snapping points.
 - Implement `onMomentumDrag*` events.

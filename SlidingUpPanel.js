@@ -332,7 +332,7 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onBackButtonPress() {
-    if (this.props.onBackButtonPress !== null) {
+    if (this.props.onBackButtonPress) {
       return this.props.onBackButtonPress()
     }
 

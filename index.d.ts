@@ -35,6 +35,5 @@ interface AnimationConfig {
 
 export default class SlidingUpPanel extends Component<Props> {
   show: (value: number | AnimationConfig) => void
-
   hide: () => void
 }
