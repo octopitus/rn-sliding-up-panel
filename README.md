@@ -1,6 +1,8 @@
 # Sliding up panel [![npm](https://img.shields.io/npm/v/rn-sliding-up-panel.svg)](https://www.npmjs.com/package/rn-sliding-up-panel)
 
-React Native draggable sliding up panel purly implemented in Javascript. Inspired by [AndroidSlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel). Works nicely on both iOS and Android.
+React Native draggable sliding up panel purly implemented in Javascript. Inspired by [AndroidSlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel). Works nicely on any platforms.
+
+Demo: [Expo](https://expo.io/@octopitus/SlidingUpPanel) | [web](https://codesandbox.io/s/3440ox733m)
 
 <img src="./demo/sliding_panel.gif" height="460" style="display: inline-block" /><img src="./demo/bottom_sheet.gif" height="460" style="display: inline-block" />
 
@@ -113,6 +115,10 @@ Programmatically move panel to a given value. Accepts a number or an object that
 
 Move the panel to the bottom position of draggable range. **Note:** This method is triggered if you touch the backdrop (If it's visible).
 
-## scrollIntoView(node: number |  | Component | ComponentClass):
+## scrollIntoView(node: number):
 
-Ensure an element (node) is visible within the viewable area. Eg: An element is hidden under the keyboard. **Note:** The element must be in the subtree of the panel component.
+Typically you don't need to use this method, But if an element is stuck under the keyboard or out of view, you can use this ensure it is visible within the viewable area.
+
+**Note:**
+- The element must be in the subtree of the panel component.
+- Node can be obtained by using `findNodeHandle`.
