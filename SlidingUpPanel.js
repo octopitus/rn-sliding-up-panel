@@ -117,9 +117,11 @@ class SlidingUpPanel extends React.PureComponent {
 
     const {top, bottom} = this.props.draggableRange
     const animatedValue = this.props.animatedValue.__getValue()
-    this._initialDragPosition = animatedValue
+    
     const initialValue = clamp(animatedValue, bottom, top)
 
+    this._initialDragPosition = initialValue
+    
     // Ensure the animation are within draggable range
     this.props.animatedValue.setValue(initialValue)
 
@@ -419,7 +421,7 @@ class SlidingUpPanel extends React.PureComponent {
       styles.animatedContainer,
       transform,
       {height, bottom: -height},
-      this.props.contentStyle && this.props.contentStyle
+      this.props.contentStyle
     ]
 
     if (typeof this.props.children === 'function') {
