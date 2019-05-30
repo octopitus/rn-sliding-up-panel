@@ -77,7 +77,6 @@ class SlidingUpPanel extends React.PureComponent {
 
   // eslint-disable-next-line react/sort-comp
   _panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => this.props.allowDragging,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
     onPanResponderGrant: this._onPanResponderGrant.bind(this),
     onPanResponderStart: this._onPanResponderStart.bind(this),
