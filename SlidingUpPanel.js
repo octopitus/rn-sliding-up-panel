@@ -182,7 +182,6 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     const animatedValue = this.props.animatedValue.__getValue()
-    this._initialDragPosition = animatedValue
 
     return (
       this._isInsideDraggableRange(animatedValue, gestureState) &&
@@ -191,14 +190,13 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onPanResponderGrant() {
-    const value = this.props.animatedValue.__getValue()
-    this._initialDragPosition = value
+    this._flick.stop()
   }
 
   _onPanResponderStart(evt, gestureState) {
-    this._flick.stop()
-
     const value = this.props.animatedValue.__getValue()
+
+    this._initialDragPosition = value
     this.props.onDragStart(value, gestureState)
   }
 
