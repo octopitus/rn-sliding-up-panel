@@ -1,4 +1,7 @@
 # Changelogs
+## 2.2.3
+- Fix issue wrong position of the panel when it's stopped in the middle of animation.
+
 ## 2.2.2
 - Fix issue can not use horizontal scrollable view (ScrollView, FlatList, SectionList) inside panel.
 
