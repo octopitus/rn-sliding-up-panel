@@ -1,4 +1,6 @@
 # Changelogs
+## 2.2.2
+- Fix issue can not use horizontal scrollable view (ScrollView, FlatList, SectionList) inside panel.
 
 ## 2.2.1
 - Switch exports to ES6 for webpack compatibility.
