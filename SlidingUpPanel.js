@@ -191,12 +191,13 @@ class SlidingUpPanel extends React.PureComponent {
 
   _onPanResponderGrant() {
     this._flick.stop()
+
+    const value = this.props.animatedValue.__getValue()
+    this._initialDragPosition = value
   }
 
   _onPanResponderStart(evt, gestureState) {
     const value = this.props.animatedValue.__getValue()
-
-    this._initialDragPosition = value
     this.props.onDragStart(value, gestureState)
   }
 
