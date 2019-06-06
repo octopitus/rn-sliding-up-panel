@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import clamp from 'clamp'
+import { ViewPropTypes } from 'react-native';
 
 import {
   TextInput,
@@ -52,7 +53,8 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
     friction: PropTypes.number,
-    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
+    contentStyle: ViewPropTypes.style
   }
 
   static defaultProps = {
@@ -117,8 +119,11 @@ class SlidingUpPanel extends React.PureComponent {
 
     const {top, bottom} = this.props.draggableRange
     const animatedValue = this.props.animatedValue.__getValue()
+    
     const initialValue = clamp(animatedValue, bottom, top)
 
+    this._initialDragPosition = initialValue
+    
     // Ensure the animation are within draggable range
     this.props.animatedValue.setValue(initialValue)
 
@@ -182,6 +187,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     const animatedValue = this.props.animatedValue.__getValue()
+    this._initialDragPosition = animatedValue
 
     return (
       this._isInsideDraggableRange(animatedValue, gestureState) &&
@@ -420,7 +426,8 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      {height, bottom: -height}
+      {height, bottom: -height},
+      this.props.contentStyle
     ]
 
     if (typeof this.props.children === 'function') {
