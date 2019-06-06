@@ -52,6 +52,8 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
     friction: PropTypes.number,
+    containerStyle: PropTypes.any,
+    backdropStyle: PropTypes.any,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
   }
 
@@ -384,6 +386,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     const {top, bottom} = this.props.draggableRange
+    const { backdropStyle } = this.props
 
     const backdropOpacity = this.props.animatedValue.interpolate({
       inputRange: [bottom, top],
@@ -398,7 +401,7 @@ class SlidingUpPanel extends React.PureComponent {
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
         onTouchEnd={() => this.hide()}
-        style={[styles.backdrop, {opacity: backdropOpacity}]}
+        style={[styles.backdrop, backdropStyle, {opacity: backdropOpacity}]}
       />
     )
   }
@@ -406,7 +409,8 @@ class SlidingUpPanel extends React.PureComponent {
   _renderContent() {
     const {
       height,
-      draggableRange: {top, bottom}
+      draggableRange: {top, bottom},
+      containerStyle
     } = this.props
 
     const translateY = this.props.animatedValue.interpolate({
@@ -420,6 +424,7 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
+      containerStyle,
       {height, bottom: -height}
     ]
 
