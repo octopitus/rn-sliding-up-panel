@@ -1,6 +1,8 @@
 import {ReactElement, Component} from 'react'
 import {
   Animated,
+  StyleProp,
+  ViewStyle,
   PanResponderGestureState,
   GestureResponderHandlers
 } from 'react-native'
@@ -23,6 +25,8 @@ interface Props {
   showBackdrop?: boolean
   backdropOpacity?: number
   friction?: number
+  containerStyle?: StyleProp<ViewStyle>
+  backdropStyle?: StyleProp<ViewStyle>
   children?:
     | ReactElement
     | ((dragHandlers: GestureResponderHandlers) => ReactElement)
