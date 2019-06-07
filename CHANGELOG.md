@@ -1,4 +1,7 @@
 # Changelogs
+## 2.3.0
+- Allow to custom backdrop & container styles
+
 ## 2.2.3
 - Fix issue wrong position of the panel when it's stopped in the middle of animation.
 
