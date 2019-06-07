@@ -72,6 +72,8 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |height|number|Height of panel. Typically this should equal to the top value of `draggablerange.`
 |friction|number|Determines how quickly the fling animation settles down and stops. The higher the value, the faster the velocity decreases. Default is 0.998.
 |backdropOpacity|number|Opacity of the backdrop when the panel is active. Default is 0.75.
+|containerStyle|Style|Custom style for the container.
+|backdropStyle|Style|Custom style for the backdrop.
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
 |allowDragging|boolean|Default `true`. Setting this to `false` to disable dragging.
