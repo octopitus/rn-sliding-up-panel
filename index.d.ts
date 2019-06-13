@@ -7,7 +7,7 @@ import {
   GestureResponderHandlers
 } from 'react-native'
 
-interface Props {
+export interface SlidingUpPanelProps {
   height?: number
   animatedValue?: Animated.Value
   draggableRange?: {top: number; bottom: number}
@@ -32,13 +32,13 @@ interface Props {
     | ((dragHandlers: GestureResponderHandlers) => ReactElement)
 }
 
-interface AnimationConfig {
+export interface SlidingUpPanelAnimationConfig {
   toValue: number
   velocity: number
 }
 
-export default class SlidingUpPanel extends Component<Props> {
-  show: (value: number | AnimationConfig) => void
+export default class SlidingUpPanel extends Component<SlidingUpPanelProps> {
+  show: (value?: number | SlidingUpPanelAnimationConfig) => void
   hide: () => void
   scrollIntoView: (node: number) => void
 }
