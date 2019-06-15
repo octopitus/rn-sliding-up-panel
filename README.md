@@ -77,11 +77,15 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
 |allowDragging|boolean|Default `true`. Setting this to `false` to disable dragging.
+|stopFlickOnBackdropTap|boolean|Default `true`. Setting this to `false` to prevent the user to stop the flicking action while the container is sliding up.
+|hideOnBackdropTap|boolean|Default `true`. Setting this to `false` to prevent the hide of the container when the user taps the backdrop.
 |onBackButtonPress|() => boolean|By default when you press back button (Android) the panel will be closed (Move to `bottom` position of `draggableRange`). Implement this function if you want to custom the behavior. Returning `true` means the event has been handled.
 |onDragStart|(position: number, gestureState: GestureState) => void|Called when the panel is about to start dragging.
 |onDragEnd|(position: number: gestureState: GestureState) => void|Called when you release your finger.
 |onMomentumDragStart|(position: number) => void|Called when the momentum drag starts. Works exactly the same way of [ScrollView#onMomentumScrollBegin](https://facebook.github.io/react-native/docs/scrollview#onmomentumscrollbegin).
 |onMomentumDragEnd|(position: number) => void|Called when the momentum drag ends. Works exactly the same way of [ScrollView#onMomentumScrollEnd](https://facebook.github.io/react-native/docs/scrollview#onmomentumscrollend).
+|onBackdropTouchStart|() => void|Called when user taps the backdrop when the container is sliding up.
+|onBackdropTouchEnd|() => void|Called when user taps the backdrop when the container is fully opened.
 |children|React.Element \| Function|Accepts passing a function as component. Invoked with `dragHandlers` (that can be passed into another View like this `<View {...dragHandlers}>`) when the panel is mounted. Useful when you want only a part of your content becomes the drag handler.
 
 A `gestureState` (is forwarded from `PanResponder'`s callbacks) object has the following:
