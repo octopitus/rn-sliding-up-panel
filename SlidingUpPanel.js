@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import clamp from 'clamp'
 
 import {
+  ViewPropTypes,
   TextInput,
   Keyboard,
   BackHandler,
@@ -52,8 +53,8 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
     friction: PropTypes.number,
-    containerStyle: PropTypes.any,
-    backdropStyle: PropTypes.any,
+    containerStyle: ViewPropTypes.style,
+    backdropStyle: ViewPropTypes.style,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
   }
 
@@ -81,7 +82,6 @@ class SlidingUpPanel extends React.PureComponent {
   _panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
     onPanResponderGrant: this._onPanResponderGrant.bind(this),
-    onPanResponderStart: this._onPanResponderStart.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
     onPanResponderRelease: this._onPanResponderRelease.bind(this),
     onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
@@ -191,15 +191,12 @@ class SlidingUpPanel extends React.PureComponent {
     )
   }
 
-  _onPanResponderGrant() {
+  _onPanResponderGrant(evt, gestureState) {
     this._flick.stop()
 
     const value = this.props.animatedValue.__getValue()
-    this._initialDragPosition = value
-  }
 
-  _onPanResponderStart(evt, gestureState) {
-    const value = this.props.animatedValue.__getValue()
+    this._initialDragPosition = value
     this.props.onDragStart(value, gestureState)
   }
 
@@ -386,7 +383,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     const {top, bottom} = this.props.draggableRange
-    const { backdropStyle } = this.props
+    const {backdropStyle} = this.props
 
     const backdropOpacity = this.props.animatedValue.interpolate({
       inputRange: [bottom, top],
