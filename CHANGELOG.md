@@ -1,4 +1,7 @@
 # Changelogs
+## 2.3.1
+- Fix issue `onDragStart` is not called.
+
 ## 2.3.0
 - Allow to custom backdrop & container styles
 
