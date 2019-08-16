@@ -54,10 +54,11 @@ class MyComponent extends React.Component {
   }
 }
 ```
+
 **More:**
 
-  - [ScrollView insides the panel](demo/ScrollViewInsidePanel.js)
-  - [Bottom sheet](demo/BottomSheet.js)
+  - [ScrollView insides the panel](https://github.com/octopitus/rn-sliding-up-panel/blob/master/demo/ScrollViewInsidePanel.js)
+  - [Bottom sheet](https://github.com/octopitus/rn-sliding-up-panel/blob/master/demo/BottomSheet.js)
 
 ## Props
 
