@@ -10,3 +10,5 @@ markdown_extensions:
       permalink: true
 theme:
   name: 'material'
+extra_css:
+  - 'assets/pygments.css'

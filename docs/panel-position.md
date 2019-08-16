@@ -1,7 +1,7 @@
 # Determine the position of panel
 The panel provides a various ways to get its position during the transition or when it's stopped. You can use `onDrag*` or `onMomentum*` events to listen to the animated value. Those events also provide you the gesture state.
 
-```js
+```jsx
 <SlidingUpPanel
   onDragStart={(value, gestureState) => {}}
   onDragEnd={(value, gestureState) => {}}
@@ -14,7 +14,7 @@ The panel provides a various ways to get its position during the transition or w
 On the other hand, can add listener directly to the animated value. This gives you more control and flexibility.
 
 
-```js
+```jsx
 import {Animated} from 'react-native'
 import SlidingUpPanel from 'rn-sliding-up-panel'
 

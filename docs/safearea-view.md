@@ -3,7 +3,7 @@
 I suggest to use the [react-native-safe-area-view](https://github.com/react-native-community/react-native-safe-area-view) because the build-in SafeAreaView component of React Native is only applicable to iOS devices with iOS version 11 or later.
 
 ## Example
-```js
+```jsx
 import SafeAreaView from 'react-native-safe-are-view'
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
@@ -18,7 +18,7 @@ import SlidingUpPanel from 'rn-sliding-up-panel'
 ## Caculate the draggable range
 If you need the panel stays inside the safe area, not just the content, you have to calculate draggable range of the panel, minus the top & bottom.
 
-```js
+```jsx
 import { getInset } from 'react-native-safe-area-view';
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
