@@ -1,5 +1,5 @@
 import React from 'react'
-import {Text, View, Dimensions, Image, Animated} from 'react-native'
+import {Text, View, Dimensions} from 'react-native'
 
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
@@ -37,41 +37,16 @@ const styles = {
 }
 
 class BottomSheet extends React.Component {
-  static defaultProps = {
-    draggableRange: {
-      top: height / 1.75,
-      bottom: 120
-    }
-  }
-
-  _draggedValue = new Animated.Value(120)
-
   render() {
-    const {top, bottom} = this.props.draggableRange
-
-    const draggedValue = this._draggedValue.interpolate({
-      inputRange: [bottom, top],
-      outputRange: [0, 1],
-      extrapolate: 'clamp'
-    })
-
-    const transform = [{scale: draggedValue}]
-
     return (
       <View style={styles.container}>
         <Text>Hello world</Text>
         <SlidingUpPanel
-          showBackdrop={false}
           ref={c => (this._panel = c)}
-          draggableRange={this.props.draggableRange}
-          animatedValue={this._draggedValue}>
+          draggableRange={{top: height / 1.75, bottom: 120}}
+          animatedValue={this._draggedValue}
+          showBackdrop={false}>
           <View style={styles.panel}>
-            <Animated.View style={[styles.favoriteIcon, {transform}]}>
-              <Image
-                source={require('./favorite_white.png')}
-                style={{width: 32, height: 32}}
-              />
-            </Animated.View>
             <View style={styles.panelHeader}>
               <Text style={{color: '#FFF'}}>Bottom Sheet Peek</Text>
             </View>
