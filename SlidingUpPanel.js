@@ -85,7 +85,7 @@ class SlidingUpPanel extends React.PureComponent {
     onPanResponderMove: this._onPanResponderMove.bind(this),
     onPanResponderRelease: this._onPanResponderRelease.bind(this),
     onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-    onShouldBlockNativeResponder: () => false,
+    onShouldBlockNativeResponder: () => true,
     onPanResponderTerminationRequest: () => false
   })
 
@@ -349,10 +349,10 @@ class SlidingUpPanel extends React.PureComponent {
     const {top, bottom} = this.props.draggableRange
 
     if (gestureState.dy > 0) {
-      return value > bottom
+      return value >= bottom
     }
 
-    return value < top
+    return value <= top
   }
 
   _isAtBottom(value) {
@@ -437,13 +437,14 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     return (
-      <Animated.View
+      <Animated.ScrollView
         key="content"
         pointerEvents="box-none"
         style={animatedContainerStyles}
-        {...this._panResponder.panHandlers}>
+        {...this._panResponder.panHandlers}
+        disableScrollViewPanResponder>
         {this.props.children}
-      </Animated.View>
+      </Animated.ScrollView>
     )
   }
 
