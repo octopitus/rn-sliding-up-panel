@@ -1,5 +1,9 @@
 # Changelogs
 
+## 2.3.3
+
+- Fix issue ScrollView is used accidentally.
+
 ## 2.3.2
 
 - Fix issue `onDragEnd` doesn't always fire.
