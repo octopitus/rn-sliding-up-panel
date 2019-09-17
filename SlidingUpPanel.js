@@ -437,14 +437,14 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     return (
-      <Animated.ScrollView
+      <Animated.View
         key="content"
         pointerEvents="box-none"
         style={animatedContainerStyles}
         {...this._panResponder.panHandlers}
         disableScrollViewPanResponder>
         {this.props.children}
-      </Animated.ScrollView>
+      </Animated.View>
     )
   }
 
