@@ -21,7 +21,7 @@ import SlidingUpPanel from 'rn-sliding-up-panel'
 class BottomSheet extends Component {
   animatedValue = new Animated.Value(0) //
 
-  componenDidMount() {
+  componentDidMount() {
     this.listener = this.animatedValue.addListener(this.onAnimatedValueChange)
   }
 
