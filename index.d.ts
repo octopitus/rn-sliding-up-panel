@@ -15,7 +15,7 @@ export interface SlidingUpPanelProps {
   minimumVelocityThreshold?: number
   minimumDistanceThreshold?: number
   avoidKeyboard?: boolean
-  onBackButtonPress?: () => void
+  onBackButtonPress?: () => boolean
   onDragStart?: (value: number, gestureState: PanResponderGestureState) => void
   onDragEnd?: (value: number, gestureState: PanResponderGestureState) => void
   onMomentumDragStart?: (value: number) => void
