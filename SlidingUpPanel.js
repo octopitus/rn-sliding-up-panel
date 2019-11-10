@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import clamp from 'clamp'
 
 import {
+  ViewPropTypes,
   TextInput,
   Keyboard,
   BackHandler,
@@ -28,6 +29,8 @@ const keyboardHideEvent = Platform.select({
   ios: 'keyboardWillHide'
 })
 
+const usableHeight = visibleHeight() - statusBarHeight()
+
 class SlidingUpPanel extends React.PureComponent {
   static propTypes = {
     height: PropTypes.number,
@@ -51,13 +54,15 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
     friction: PropTypes.number,
+    containerStyle: ViewPropTypes.style,
+    backdropStyle: ViewPropTypes.style,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
   }
 
   static defaultProps = {
-    height: visibleHeight - statusBarHeight,
+    height: usableHeight,
     animatedValue: new Animated.Value(0),
-    draggableRange: {top: visibleHeight - statusBarHeight, bottom: 0},
+    draggableRange: {top: usableHeight, bottom: 0},
     snappingPoints: [],
     minimumVelocityThreshold: Constants.DEFAULT_MINIMUM_VELOCITY_THRESHOLD,
     minimumDistanceThreshold: Constants.DEFAULT_MINIMUM_DISTANCE_THRESHOLD,
@@ -77,13 +82,12 @@ class SlidingUpPanel extends React.PureComponent {
 
   // eslint-disable-next-line react/sort-comp
   _panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => this.props.allowDragging,
     onMoveShouldSetPanResponder: this._onMoveShouldSetPanResponder.bind(this),
-    onPanResponderStart: this._onPanResponderStart.bind(this),
+    onPanResponderGrant: this._onPanResponderGrant.bind(this),
     onPanResponderMove: this._onPanResponderMove.bind(this),
     onPanResponderRelease: this._onPanResponderRelease.bind(this),
     onPanResponderTerminate: this._onPanResponderTerminate.bind(this),
-    onShouldBlockNativeResponder: () => false,
+    onShouldBlockNativeResponder: () => true,
     onPanResponderTerminationRequest: () => false
   })
 
@@ -122,6 +126,7 @@ class SlidingUpPanel extends React.PureComponent {
     // Ensure the animation are within draggable range
     this.props.animatedValue.setValue(initialValue)
 
+    this._initialDragPosition = initialValue
     this._backdropPointerEvents = this._isAtBottom(initialValue) ? 'none' : 'box-only' // prettier-ignore
     this._flick = new FlickAnimation({max: top, min: bottom})
 
@@ -188,7 +193,7 @@ class SlidingUpPanel extends React.PureComponent {
     )
   }
 
-  _onPanResponderStart(evt, gestureState) {
+  _onPanResponderGrant(evt, gestureState) {
     this._flick.stop()
 
     const value = this.props.animatedValue.__getValue()
@@ -328,7 +333,7 @@ class SlidingUpPanel extends React.PureComponent {
   }
 
   _onBackButtonPress() {
-    if (this.props.onBackButtonPress !== null) {
+    if (this.props.onBackButtonPress) {
       return this.props.onBackButtonPress()
     }
 
@@ -347,10 +352,10 @@ class SlidingUpPanel extends React.PureComponent {
     const {top, bottom} = this.props.draggableRange
 
     if (gestureState.dy > 0) {
-      return value > bottom
+      return value >= bottom
     }
 
-    return value < top
+    return value <= top
   }
 
   _isAtBottom(value) {
@@ -381,6 +386,7 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     const {top, bottom} = this.props.draggableRange
+    const {backdropStyle} = this.props
 
     const backdropOpacity = this.props.animatedValue.interpolate({
       inputRange: [bottom, top],
@@ -395,7 +401,7 @@ class SlidingUpPanel extends React.PureComponent {
         ref={c => (this._backdrop = c)}
         onTouchStart={() => this._flick.stop()}
         onTouchEnd={() => this.hide()}
-        style={[styles.backdrop, {opacity: backdropOpacity}]}
+        style={[styles.backdrop, backdropStyle, {opacity: backdropOpacity}]}
       />
     )
   }
@@ -403,7 +409,8 @@ class SlidingUpPanel extends React.PureComponent {
   _renderContent() {
     const {
       height,
-      draggableRange: {top, bottom}
+      draggableRange: {top, bottom},
+      containerStyle
     } = this.props
 
     const translateY = this.props.animatedValue.interpolate({
@@ -417,6 +424,7 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
+      containerStyle,
       {height, bottom: -height}
     ]
 
@@ -436,7 +444,8 @@ class SlidingUpPanel extends React.PureComponent {
         key="content"
         pointerEvents="box-none"
         style={animatedContainerStyles}
-        {...this._panResponder.panHandlers}>
+        {...this._panResponder.panHandlers}
+        disableScrollViewPanResponder>
         {this.props.children}
       </Animated.View>
     )

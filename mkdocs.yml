@@ -1,0 +1,14 @@
+site_name: Sliding Up Panel
+repo_name: 'octopitus/rn-sliding-up-panel'
+repo_url: 'https://github.com/octopitus/rn-sliding-up-panel'
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+      use_pygments: true
+  - toc:
+      permalink: true
+theme:
+  name: 'material'
+extra_css:
+  - 'assets/pygments.css'

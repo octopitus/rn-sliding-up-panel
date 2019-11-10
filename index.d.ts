@@ -1,11 +1,13 @@
 import {ReactElement, Component} from 'react'
 import {
   Animated,
+  StyleProp,
+  ViewStyle,
   PanResponderGestureState,
   GestureResponderHandlers
 } from 'react-native'
 
-interface Props {
+export interface SlidingUpPanelProps {
   height?: number
   animatedValue?: Animated.Value
   draggableRange?: {top: number; bottom: number}
@@ -13,7 +15,7 @@ interface Props {
   minimumVelocityThreshold?: number
   minimumDistanceThreshold?: number
   avoidKeyboard?: boolean
-  onBackButtonPress?: () => void
+  onBackButtonPress?: () => boolean
   onDragStart?: (value: number, gestureState: PanResponderGestureState) => void
   onDragEnd?: (value: number, gestureState: PanResponderGestureState) => void
   onMomentumDragStart?: (value: number) => void
@@ -23,18 +25,20 @@ interface Props {
   showBackdrop?: boolean
   backdropOpacity?: number
   friction?: number
+  containerStyle?: StyleProp<ViewStyle>
+  backdropStyle?: StyleProp<ViewStyle>
   children?:
     | ReactElement
     | ((dragHandlers: GestureResponderHandlers) => ReactElement)
 }
 
-interface AnimationConfig {
+export interface SlidingUpPanelAnimationConfig {
   toValue: number
   velocity: number
 }
 
-export default class SlidingUpPanel extends Component<Props> {
-  show: (value: number | AnimationConfig) => void
-
+export default class SlidingUpPanel extends Component<SlidingUpPanelProps> {
+  show: (value?: number | SlidingUpPanelAnimationConfig) => void
   hide: () => void
+  scrollIntoView: (node: number) => void
 }
