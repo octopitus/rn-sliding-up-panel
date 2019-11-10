@@ -48,7 +48,7 @@ class SlidingUpPanel extends React.PureComponent {
     onDragEnd: PropTypes.func,
     onMomentumDragStart: PropTypes.func,
     onMomentumDragEnd: PropTypes.func,
-    onClose: PropTypes.func,
+    onBottomReached: PropTypes.func,
     allowMomentum: PropTypes.bool,
     allowDragging: PropTypes.bool,
     showBackdrop: PropTypes.bool,
@@ -77,7 +77,7 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: true,
     backdropOpacity: 0.75,
     friction: Constants.DEFAULT_FRICTION,
-    onClose: () => null,
+    onBottomReached: () => null,
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -281,7 +281,7 @@ class SlidingUpPanel extends React.PureComponent {
     const isAtBottom = this._isAtBottom(value)
 
     if (isAtBottom) {
-      this.props.onClose();
+      this.props.onBottomReached();
       Keyboard.dismiss()
     }
 
