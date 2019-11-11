@@ -316,7 +316,7 @@
 <span class="kr">class</span> <span class="nx">BottomSheet</span> <span class="kr">extends</span> <span class="nx">Component</span> <span class="p">{</span>
   <span class="nx">animatedValue</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Animated</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1">//</span>
 
-  <span class="nx">componenDidMount</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">componentDidMount</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">listener</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">animatedValue</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">onAnimatedValueChange</span><span class="p">)</span>
   <span class="p">}</span>
 
