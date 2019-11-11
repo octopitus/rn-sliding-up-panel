@@ -1,5 +1,10 @@
 # Changelogs
 
+## 2.4.0
+
+- Add `onBottomReached` prop.
+- Prevents further propagation when `onBackButtonPress` returns true.
+
 ## 2.3.3
 
 - Fix issue ScrollView is used accidentally.
