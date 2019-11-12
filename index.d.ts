@@ -26,7 +26,7 @@ export interface SlidingUpPanelProps {
   showBackdrop?: boolean
   backdropOpacity?: number
   friction?: number
-  containerStyle?: StyleProp<ViewStyle>
+  containerStyle?: StyleProp<any>
   backdropStyle?: StyleProp<ViewStyle>
   children?:
     | ReactElement
