@@ -4,7 +4,7 @@ I suggest to use the [react-native-safe-area-view](https://github.com/react-nati
 
 ## Example
 ```jsx
-import SafeAreaView from 'react-native-safe-are-view'
+import SafeAreaView from 'react-native-safe-area-view'
 import SlidingUpPanel from 'rn-sliding-up-panel'
 
 // Your render function
