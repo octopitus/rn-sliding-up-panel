@@ -10,8 +10,6 @@ export default StyleSheet.create({
     backgroundColor: '#000'
   },
   animatedContainer: {
-    flex: 1,
-    alignSelf: 'stretch',
     position: 'absolute',
     left: 0,
     right: 0
