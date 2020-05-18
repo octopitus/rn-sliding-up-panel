@@ -77,6 +77,7 @@ animatedValue|Animated.Value|An **Animated.Value** number between the top and bo
 |showBackdrop|boolean|Controls the visibility of backdrop. Default `true`.
 |allowMomentum|boolean|If `false`, panel will not continue to move when you release your finger.
 |allowDragging|boolean|Default `true`. Setting this to `false` to disable dragging.
+|avoidKeyboard|boolean|If `true` every time animated value changes keyboard will be dismissed. Default `true`.
 |onBackButtonPress|() => boolean|By default when you press back button (Android) the panel will be closed (Move to `bottom` position of `draggableRange`). Implement this function if you want to custom the behavior. Returning `true` means the event has been handled.
 |onDragStart|(position: number, gestureState: GestureState) => void|Called when the panel is about to start dragging.
 |onDragEnd|(position: number: gestureState: GestureState) => void|Called when you release your finger.
