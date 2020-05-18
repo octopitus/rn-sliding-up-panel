@@ -282,7 +282,7 @@ class SlidingUpPanel extends React.PureComponent {
 
     if (isAtBottom) {
       this.props.onBottomReached();
-      Keyboard.dismiss()
+      this.props.avoidKeyboard && Keyboard.dismiss();
     }
 
     if (this._backdrop == null) {
