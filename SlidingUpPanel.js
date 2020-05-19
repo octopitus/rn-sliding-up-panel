@@ -4,12 +4,14 @@ import clamp from 'clamp'
 
 import {
   ViewPropTypes,
+  UIManager,
   TextInput,
   Keyboard,
   BackHandler,
   Animated,
   PanResponder,
-  Platform
+  Platform,
+  findNodeHandle
 } from 'react-native'
 
 import closest from './libs/closest'
@@ -281,8 +283,8 @@ class SlidingUpPanel extends React.PureComponent {
     const isAtBottom = this._isAtBottom(value)
 
     if (isAtBottom) {
-      this.props.onBottomReached();
-      this.props.avoidKeyboard && Keyboard.dismiss();
+      this.props.onBottomReached()
+      this.props.avoidKeyboard && Keyboard.dismiss()
     }
 
     if (this._backdrop == null) {
@@ -312,7 +314,9 @@ class SlidingUpPanel extends React.PureComponent {
     const node = TextInput.State.currentlyFocusedField()
 
     if (node != null) {
-      this.scrollIntoView(node)
+      UIManager.viewIsDescendantOf(node, findNodeHandle(this._content), (isDescendant) => {
+        isDescendant && this.scrollIntoView(node)
+      });
     }
   }
 
@@ -325,7 +329,8 @@ class SlidingUpPanel extends React.PureComponent {
     if (this._lastPosition != null && !this._isAtBottom(animatedValue)) {
       Animated.timing(this.props.animatedValue, {
         toValue: this._lastPosition,
-        duration: Constants.KEYBOARD_TRANSITION_DURATION
+        duration: Constants.KEYBOARD_TRANSITION_DURATION,
+        useNativeDriver: true
       }).start()
     }
 
@@ -433,6 +438,7 @@ class SlidingUpPanel extends React.PureComponent {
         <Animated.View
           key="content"
           pointerEvents="box-none"
+          ref={c => (this._content = c)}
           style={animatedContainerStyles}>
           {this.props.children(this._panResponder.panHandlers)}
         </Animated.View>
@@ -443,6 +449,7 @@ class SlidingUpPanel extends React.PureComponent {
       <Animated.View
         key="content"
         pointerEvents="box-none"
+        ref={c => (this._content = c)}
         style={animatedContainerStyles}
         {...this._panResponder.panHandlers}>
         {this.props.children}
@@ -492,7 +499,8 @@ class SlidingUpPanel extends React.PureComponent {
 
       Animated.timing(this.props.animatedValue, {
         toValue: transitionDistance,
-        duration: Constants.KEYBOARD_TRANSITION_DURATION
+        duration: Constants.KEYBOARD_TRANSITION_DURATION,
+        useNativeDriver: true
       }).start()
     }
   }
