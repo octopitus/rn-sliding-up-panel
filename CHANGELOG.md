@@ -1,5 +1,11 @@
 # Changelogs
 
+## 2.4.2
+- Fix issue focusing on inputs outside panel causes the panel to show up.
+
+## 2.4.1
+- Fix issue `avoidKeyboard` doesn't have effect.
+
 ## 2.4.0
 
 - Add `onBottomReached` prop.
