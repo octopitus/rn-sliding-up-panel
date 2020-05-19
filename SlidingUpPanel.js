@@ -281,8 +281,8 @@ class SlidingUpPanel extends React.PureComponent {
     const isAtBottom = this._isAtBottom(value)
 
     if (isAtBottom) {
-      this.props.onBottomReached();
-      this.props.avoidKeyboard && Keyboard.dismiss();
+      this.props.onBottomReached()
+      this.props.avoidKeyboard && Keyboard.dismiss()
     }
 
     if (this._backdrop == null) {
@@ -312,7 +312,9 @@ class SlidingUpPanel extends React.PureComponent {
     const node = TextInput.State.currentlyFocusedField()
 
     if (node != null) {
-      this.scrollIntoView(node)
+      UIManager.viewIsDescendantOf(node, this._content, (isDescendant) => {
+        isDescendant && this.scrollIntoView(node)
+      });
     }
   }
 
@@ -433,6 +435,7 @@ class SlidingUpPanel extends React.PureComponent {
         <Animated.View
           key="content"
           pointerEvents="box-none"
+          ref={c => (this._content = c)}
           style={animatedContainerStyles}>
           {this.props.children(this._panResponder.panHandlers)}
         </Animated.View>
