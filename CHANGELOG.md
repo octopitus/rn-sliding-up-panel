@@ -1,5 +1,8 @@
 # Changelogs
 
+## 2.4.3
+- Fix issue pan handler is not being correctly released.
+
 ## 2.4.2
 - Fix issue focusing on inputs outside panel causes the panel to show up.
 
