@@ -217,14 +217,14 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedValue = this.props.animatedValue.__getValue()
 
     if (!this._isInsideDraggableRange(animatedValue, gestureState)) {
-      return
+      return true
     }
 
     this._initialDragPosition = animatedValue
     this.props.onDragEnd(animatedValue, gestureState)
 
     if (!this.props.allowMomentum) {
-      return
+      return true
     }
 
     if (this.props.snappingPoints.length > 0) {
@@ -253,7 +253,7 @@ class SlidingUpPanel extends React.PureComponent {
         friction: this.props.friction,
         onMomentumEnd: this.props.onMomentumDragEnd
       })
-      return
+      return true
     }
 
     if (Math.abs(gestureState.vy) > this.props.minimumVelocityThreshold) {
@@ -266,6 +266,7 @@ class SlidingUpPanel extends React.PureComponent {
         onMomentumEnd: this.props.onMomentumDragEnd
       })
     }
+    return true
   }
 
   _onPanResponderTerminate(evt, gestureState) {
