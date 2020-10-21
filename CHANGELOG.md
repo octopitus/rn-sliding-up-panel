@@ -1,6 +1,6 @@
 # Changelogs
 
-# 2.4.4
+## 2.4.4
 - Use currentlyFocusInput instead of currentlyFocusedField
 
 ## 2.4.3
