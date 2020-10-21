@@ -1,5 +1,8 @@
 # Changelogs
 
+# 2.4.4
+- Use currentlyFocusInput instead of currentlyFocusedField
+
 ## 2.4.3
 - Fix issue pan handler is not being correctly released.
 

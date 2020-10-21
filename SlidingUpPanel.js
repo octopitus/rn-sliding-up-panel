@@ -312,7 +312,9 @@ class SlidingUpPanel extends React.PureComponent {
 
     this._storeKeyboardPosition(event.endCoordinates.screenY)
 
-    const node = TextInput.State.currentlyFocusedField()
+    const node = TextInput.State.currentlyFocusedField
+      ? TextInput.State.currentlyFocusedField()
+      : findNodeHandler(TextInput.State.currentlyFocusedInput());
 
     if (node != null) {
       UIManager.viewIsDescendantOf(node, findNodeHandle(this._content), (isDescendant) => {
