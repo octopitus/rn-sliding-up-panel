@@ -1,4 +1,6 @@
 # Changelogs
+## 2.4.4
+- Fix the warning of currentlyFocusInput
 
 ## 2.4.4
 - Use currentlyFocusInput instead of currentlyFocusedField
