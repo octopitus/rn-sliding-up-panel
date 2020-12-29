@@ -56,7 +56,7 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: PropTypes.bool,
     backdropOpacity: PropTypes.number,
     friction: PropTypes.number,
-    containerStyle: ViewPropTypes.style,
+    containerStyle: PropTypes.any,
     backdropStyle: ViewPropTypes.style,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.func])
   }
@@ -432,8 +432,8 @@ class SlidingUpPanel extends React.PureComponent {
     const animatedContainerStyles = [
       styles.animatedContainer,
       transform,
-      containerStyle,
-      {height, bottom: -height}
+      {height, bottom: -height},
+      containerStyle
     ]
 
     if (typeof this.props.children === 'function') {
