@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "clamp": "^1.0.1",
+    "deprecated-react-native-prop-types": "^2.3.0",
     "prop-types": "^15.7.2"
   },
   "devDependencies": {
