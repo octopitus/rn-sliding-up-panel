@@ -1,24 +1,25 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import clamp from 'clamp'
+import PropTypes from 'prop-types'
+import React from 'react'
+
+import {ViewPropTypes} from 'deprecated-react-native-prop-types'
 
 import {
-  ViewPropTypes,
-  UIManager,
-  TextInput,
-  Keyboard,
-  BackHandler,
   Animated,
+  BackHandler,
+  findNodeHandle,
+  Keyboard,
   PanResponder,
   Platform,
-  findNodeHandle
+  TextInput,
+  UIManager
 } from 'react-native'
 
 import closest from './libs/closest'
-import measureElement from './libs/measureElement'
+import * as Constants from './libs/constants'
 import FlickAnimation from './libs/FlickAnimation'
 import {statusBarHeight, visibleHeight} from './libs/layout'
-import * as Constants from './libs/constants'
+import measureElement from './libs/measureElement'
 import styles from './libs/styles'
 
 const keyboardShowEvent = Platform.select({
@@ -79,7 +80,7 @@ class SlidingUpPanel extends React.PureComponent {
     showBackdrop: true,
     backdropOpacity: 0.75,
     friction: Constants.DEFAULT_FRICTION,
-    onBottomReached: () => null,
+    onBottomReached: () => null
   }
 
   // eslint-disable-next-line react/sort-comp
@@ -317,9 +318,13 @@ class SlidingUpPanel extends React.PureComponent {
       : TextInput.State.currentlyFocusedField()
 
     if (node != null) {
-      UIManager.viewIsDescendantOf(node, findNodeHandle(this._content), (isDescendant) => {
-        isDescendant && this.scrollIntoView(node)
-      });
+      UIManager.viewIsDescendantOf(
+        node,
+        findNodeHandle(this._content),
+        isDescendant => {
+          isDescendant && this.scrollIntoView(node)
+        }
+      )
     }
   }
 
