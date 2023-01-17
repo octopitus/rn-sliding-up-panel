@@ -114,6 +114,7 @@ class SlidingUpPanel extends React.PureComponent {
 
     this._storeKeyboardPosition = this._storeKeyboardPosition.bind(this)
     this._isInsideDraggableRange = this._isInsideDraggableRange.bind(this)
+    this._isInsideTouchable = this._isInsideTouchable.bind(this)
     this._triggerAnimation = this._triggerAnimation.bind(this)
     this._renderContent = this._renderContent.bind(this)
     this._renderBackdrop = this._renderBackdrop.bind(this)
@@ -192,6 +193,7 @@ class SlidingUpPanel extends React.PureComponent {
 
     return (
       this._isInsideDraggableRange(animatedValue, gestureState) &&
+      this._isInsideTouchable(gestureState) &&
       Math.abs(gestureState.dy) > this.props.minimumDistanceThreshold
     )
   }
@@ -369,6 +371,11 @@ class SlidingUpPanel extends React.PureComponent {
     }
 
     return value <= top
+  }
+
+  _isInsideTouchable(gestureState) {
+    const { dx, dy } = gestureState
+    return dx > 2 || dx < -2 || dy > 2 || dy < -2
   }
 
   _isAtBottom(value) {
